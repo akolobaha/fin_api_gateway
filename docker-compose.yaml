@@ -1,0 +1,47 @@
+
+version: '3.8'
+
+networks:
+  fin-network:
+    driver: bridge
+    external: true
+
+services:
+  db:
+    image: postgres:latest
+    container_name: users-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DATABASE}
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - 5432:5432
+    volumes:
+      - ./docker/pgdata:/var/lib/postgresql/data
+    networks:
+      - fin-network
+
+  app:
+    image: my-go-app
+    volumes:
+      - .:/home
+      - .env:/usr/local/.env
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: users-app
+    ports:
+      - "8080:8080"
+      - "50052:50052"
+    depends_on:
+      - db
+    links:
+      - db
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DATABASE}
+    networks:
+      - fin-network

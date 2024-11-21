@@ -1,0 +1,293 @@
+openapi: 3.0.1
+info:
+  version: 1.0.0
+  title: User Authentication API
+  description: API for financial data processing service
+
+servers:
+  - url: http://localhost:8082/api/
+    description: Local server
+
+paths:
+  /auth:
+    post:
+      summary: Auth user
+      responses:
+        '200':
+          description: Auth data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+  /users:
+    post:
+      summary: Create user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUserRequest'
+      responses:
+        '200':
+          description: User successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewUserResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/{userId}:
+    get:
+      summary: One user
+      description: Возвращает данные по одному пользователю
+      parameters:
+        - name: userId
+          in: path
+          description: Id пользователя
+          required: true
+          example: 1
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of users
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+  /security-fulfils:
+    post:
+      summary: Create security fulfil
+      description: Целевой показатель пользователя по эмитенту
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewSecurityFulfil'
+      responses:
+        '200':
+          description: User successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewUserResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      summary: Все целевые показатели пользователя
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+        - name: page_size
+          in: query
+          description: Page size
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Список целевых показателей по эмитентам
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+
+  /security-fulfils/{id}:
+    patch:
+      summary: Обновить целевой показатель
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          description: Id целевого показателя
+          required: true
+          example: 1
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewSecurityFulfil'
+      responses:
+        '200':
+          description: List of users
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+    delete:
+      summary: Удалить цель пользователя
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          description: Id пользователя
+          required: true
+          example: 1
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+
+
+components:
+  schemas:
+    NewUserRequest:
+      type: object
+      properties:
+        telegram:
+          type: string
+          description: Telegram ID пользователя
+          example: "telegram_login"
+        name:
+          type: string
+          description: Имя пользователя
+          example: "username"
+        email:
+          type: string
+          description: Email пользователя
+          example: "email@email.ru"
+        password:
+          type: string
+          minLength: 6
+          description: Пароль
+          example: mypassword
+      required:
+        - telegram
+        - name
+        - email
+    NewUserResponse:
+      type: object
+      required:
+        - id
+        - telegram
+        - name
+        - email
+      properties:
+        id:
+          type: integer
+          description: Id пользователя
+          example: 1
+        telegram:
+          type: string
+          description: Telegram ID пользователя
+          example: "telegram_login"
+        email:
+          type: string
+          description: Email пользователя
+          example: "email@email.ru"
+        name:
+          type: string
+          description: Имя пользователя
+          example: "username"
+    AuthRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          description: Email пользователя
+          example: "email@email.ru"
+        password:
+          type: string
+          description: Пароль пользователя
+          example: "mypassword"
+      required:
+        - email
+        - password
+    AuthResponse:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          description: Токен авторизации
+
+    NewSecurityFulfil:
+      type: object
+      properties:
+        ticker:
+          type: string
+          description: Тикер
+          example: "GAZP"
+        pe:
+          type: number
+          description: целевой P / E
+          example: 10.1
+        pbv:
+          type: number
+          description: целевой P / Bv
+          example: 10.1
+
+      required:
+        - telegram
+        - name
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Description of the error
+      required:
+        - error
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      in: header
