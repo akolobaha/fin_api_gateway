@@ -15,10 +15,6 @@ import (
 	"time"
 )
 
-func helloHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello, World!"))
-}
-
 func RunHttp(ctx context.Context, cfg *config.Config) {
 	r := mux.NewRouter()
 
@@ -27,11 +23,10 @@ func RunHttp(ctx context.Context, cfg *config.Config) {
 	r.HandleFunc("/api/auth", httphandler.Auth).Methods("POST")
 
 	r.HandleFunc("/api/users", httphandler.AddUser).Methods("POST")
-	r.HandleFunc("/api/users", middleware.Auth(middleware.Logging(httphandler.UsersList))).Methods("GET")
 	r.HandleFunc("/api/users", middleware.Auth(middleware.Logging(httphandler.UpdateUser))).Methods("PATCH")
 
 	r.HandleFunc("/api/security-fulfils", middleware.Auth(middleware.Logging(httphandler.SecurityFulfilsList))).Methods("GET")
-	r.HandleFunc("/api/security-fulfils", middleware.Auth(middleware.Logging(httphandler.AddSecurityFulfil))).Methods("POST")
+	r.HandleFunc("/api/security-fulfils", middleware.Auth(middleware.Logging(httphandler.CreateUserSecurityFulfilHandler))).Methods("POST")
 
 	r.HandleFunc("/api/security-fulfils/{id}", middleware.Auth(middleware.Logging(httphandler.SecurityFulfilUpdate))).Methods("PATCH")
 	r.HandleFunc("/api/security-fulfils/{id}", middleware.Auth(middleware.Logging(httphandler.SecurityFulfilDelete))).Methods("DELETE")

@@ -11,33 +11,28 @@ import (
 	"strconv"
 )
 
-func AddSecurityFulfil(w http.ResponseWriter, r *http.Request) {
-	gDB := db.GetGormDbConnection()
+func CreateUserSecurityFulfilHandler(w http.ResponseWriter, r *http.Request) {
 	var newUserSecFulfil entities.UserSecurityFulfil
 	json.NewDecoder(r.Body)
 
 	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&newUserSecFulfil); err != nil {
-		http.Error(w, err.Error(), 400)
+
+	err := decoder.Decode(&newUserSecFulfil)
+	err = newUserSecFulfil.Validate()
+	gormDb := new(db.GormDB)
+	err = newUserSecFulfil.Save(r.Context(), gormDb.Connect())
+	ProcessHttp400(err, w)
+
+	if err == nil {
+		renderJSON(w, newUserSecFulfil)
 	}
-
-	userId := r.Context().Value("userId").(int64)
-	newUserSecFulfil.UserId = userId
-
-	result := gDB.Create(&newUserSecFulfil)
-	if err := result.Error; err != nil {
-		http.Error(w, err.Error(), 400)
-		return
-	}
-
-	renderJSON(w, newUserSecFulfil)
+	return
 }
 
 func SecurityFulfilsList(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value("userId").(int64)
 
-	gDB := db.GetGormDbConnection()
-
+	gDB := new(db.GormDB).Connect()
 	var results []entities.UserSecurityFulfil
 	paginatedDB := Paginate(r)(gDB)
 	err := paginatedDB.Table("user_security_fulfils").
@@ -53,7 +48,7 @@ func SecurityFulfilsList(w http.ResponseWriter, r *http.Request) {
 }
 
 func SecurityFulfilUpdate(w http.ResponseWriter, r *http.Request) {
-	gDB := db.GetGormDbConnection()
+	gDB := new(db.GormDB).Connect()
 	var updUserSecFulfil entities.UserSecurityFulfil
 
 	decoder := json.NewDecoder(r.Body)
@@ -98,7 +93,7 @@ func SecurityFulfilUpdate(w http.ResponseWriter, r *http.Request) {
 }
 
 func SecurityFulfilDelete(w http.ResponseWriter, r *http.Request) {
-	gDB := db.GetGormDbConnection()
+	gDB := new(db.GormDB).Connect()
 	vars := mux.Vars(r)
 	id, err := strconv.ParseUint(vars["id"], 10, 0)
 	if err != nil {

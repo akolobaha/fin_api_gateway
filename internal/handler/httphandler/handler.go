@@ -3,6 +3,7 @@ package httphandler
 import (
 	"encoding/json"
 	"gorm.io/gorm"
+	"log/slog"
 	"net/http"
 	"strconv"
 )
@@ -14,9 +15,6 @@ func renderJSON(w http.ResponseWriter, v interface{}) {
 	}
 }
 
-// Paginate /**
-// В рамках проекта изменения, вносящиеся через веб api, производятся только админом, также применяется соритровка по возрастанию id
-// поэтому простой пагинации с лимитом и отступом достаточно
 func Paginate(r *http.Request) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		q := r.URL.Query()
@@ -35,5 +33,22 @@ func Paginate(r *http.Request) func(db *gorm.DB) *gorm.DB {
 
 		offset := (page - 1) * pageSize
 		return db.Offset(offset).Limit(pageSize)
+	}
+}
+
+func jsonErrorResponse(w http.ResponseWriter, err error, statusCode int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+
+	response := map[string]string{"error": err.Error()}
+	json.NewEncoder(w).Encode(response)
+}
+
+func ProcessHttp400(err error, w http.ResponseWriter) {
+	if err != nil {
+		slog.Error(err.Error())
+
+		jsonErrorResponse(w, err, 400)
+		return
 	}
 }

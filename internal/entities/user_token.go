@@ -18,7 +18,7 @@ type UserToken struct {
 }
 
 func FindOrCreateToken(userId int64) (*UserToken, error) {
-	dbGorm := db.GetGormDbConnection()
+	dbGorm := new(db.GormDB).Connect()
 	currentTime := time.Now()
 	formattedTime := currentTime.Format("2006-01-02 15:04:05")
 	userToken := UserToken{}

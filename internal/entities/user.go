@@ -45,11 +45,7 @@ func (u *User) CheckPassword(password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
 }
 
-func (u *User) IssueToken() error {
-	return nil
-}
-
-func ValidateUser(User User) error {
+func (u *User) Validate() error {
 	validate := validator.New()
-	return validate.Struct(User)
+	return validate.Struct(u)
 }

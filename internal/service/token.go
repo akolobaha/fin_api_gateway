@@ -2,7 +2,7 @@ package service
 
 import (
 	"errors"
-	gormDB "fin_api_gateway/db"
+	"fin_api_gateway/db"
 	"fin_api_gateway/internal/entities"
 	"gorm.io/gorm"
 	"log/slog"
@@ -10,7 +10,7 @@ import (
 )
 
 func GetTokenEntityByToken(token string) (entities.UserToken, error) {
-	gDB := gormDB.GetGormDbConnection()
+	gDB := new(db.GormDB).Connect()
 	currentTime := time.Now()
 	formattedTime := currentTime.Format("2006-01-02 15:04:05")
 	userToken := entities.UserToken{}

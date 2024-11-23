@@ -1,39 +1,30 @@
 package db
 
 import (
-	"database/sql"
-	"fin_api_gateway/internal/config"
-	_ "github.com/lib/pq"
+	"github.com/DATA-DOG/go-sqlmock"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
-	"log/slog"
 )
 
-func GetDbConnection() *sql.DB {
-	db, err := sql.Open("postgres", config.DbDsn)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Проверка подключения
-	if err = db.Ping(); err != nil {
-		slog.Error(err.Error())
-	}
-
-	return db
+type DatabaseInterface interface {
+	Connect() *gorm.DB
 }
 
-func GetGormDbConnection() *gorm.DB {
+func NewMockDB() (*gorm.DB, sqlmock.Sqlmock) {
 
-	db, err := gorm.Open(postgres.New(postgres.Config{
-		DSN:                  config.DbDsn,
-		PreferSimpleProtocol: true, // disables implicit prepared statement usage
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		log.Fatalf("An error '%s' was not expected when opening a stub database connection", err)
+	}
+
+	gormDB, err := gorm.Open(postgres.New(postgres.Config{
+		Conn: db,
 	}), &gorm.Config{})
 
 	if err != nil {
-		slog.Error(err.Error())
+		log.Fatalf("An error '%s' was not expected when opening gorm database", err)
 	}
 
-	return db
+	return gormDB, mock
 }

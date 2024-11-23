@@ -20,7 +20,7 @@ func Auth(w http.ResponseWriter, r *http.Request) {
 
 	// Авторизация
 	var user entities.User
-	gDB := db.GetGormDbConnection()
+	gDB := new(db.GormDB).Connect()
 	if err := gDB.Where("email = ?", userAuth.Email).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Info("Запись не найдена")
@@ -47,7 +47,7 @@ func Auth(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddUser(w http.ResponseWriter, r *http.Request) {
-	gDB := db.GetGormDbConnection()
+	gDB := new(db.GormDB).Connect()
 	var newUser entities.User
 	json.NewDecoder(r.Body)
 
@@ -56,7 +56,7 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 400)
 	}
 
-	err := entities.ValidateUser(newUser)
+	err := newUser.Validate()
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return
@@ -79,25 +79,8 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func UsersList(w http.ResponseWriter, r *http.Request) {
-	gDB := db.GetGormDbConnection()
-	var users []entities.User
-
-	// Применяем пагинацию к запросу
-	paginatedDB := Paginate(r)(gDB)
-
-	result := paginatedDB.Order("id").Find(&users)
-
-	if err := result.Error; err != nil {
-		http.Error(w, err.Error(), 400)
-		return
-	}
-
-	renderJSON(w, users)
-}
-
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
-	gDB := db.GetGormDbConnection()
+	gDB := new(db.GormDB).Connect()
 	var user entities.User
 	if err := readBody(r, &user); err != nil {
 		w.WriteHeader(http.StatusUnprocessableEntity)
