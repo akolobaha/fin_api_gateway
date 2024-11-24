@@ -15,7 +15,6 @@ type MockUser struct {
 	Password string
 }
 
-// CheckPassword проверка пароля
 func (u *MockUser) CheckPassword(password string) error {
 	if password != u.Password {
 		return errors.New("incorrect password")
@@ -23,25 +22,6 @@ func (u *MockUser) CheckPassword(password string) error {
 	return nil
 }
 
-// Authenticate функция аутентификации
-func AuthenticateMock(conn *gorm.DB, ua *UserAuth) (MockUser, error) {
-	var user MockUser
-	if err := conn.Where("email = ?", ua.Email).First(&user).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return user, gorm.ErrRecordNotFound
-		}
-		return user, err
-	}
-
-	err := user.CheckPassword(ua.Password)
-	if err != nil {
-		return user, err
-	}
-
-	return user, nil
-}
-
-// Тесты
 func TestAuthenticate_UserFoundAndPasswordCorrect(t *testing.T) {
 	// Создаем тестовую базу данных SQLite
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
