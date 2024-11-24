@@ -23,11 +23,6 @@ type UserBase struct {
 	Telegram string `gorm:"not null" json:"telegram" validate:"required"`
 }
 
-type UserAuth struct {
-	Email    string `gorm:"primaryKey" json:"email" validate:"required,email"`
-	Password string `gorm:"not null" json:"password" validate:"required,min=6"`
-}
-
 type AuthResponse struct {
 	Token string `json:"token"`
 }

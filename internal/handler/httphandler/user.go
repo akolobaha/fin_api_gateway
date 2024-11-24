@@ -2,40 +2,30 @@ package httphandler
 
 import (
 	"encoding/json"
-	"errors"
 	"fin_api_gateway/db"
 	"fin_api_gateway/internal/entities"
-	"gorm.io/gorm"
+	"fin_api_gateway/internal/service"
 	"io"
-	"log/slog"
 	"net/http"
 )
 
 func Auth(w http.ResponseWriter, r *http.Request) {
-	var userAuth entities.UserAuth
+	var userAuth service.UserAuth
 	if err := readBody(r, &userAuth); err != nil {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 
-	// Авторизация
-	var user entities.User
+	// Аутентификация
 	gDB := new(db.GormDB).Connect()
-	if err := gDB.Where("email = ?", userAuth.Email).First(&user).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			slog.Info("Запись не найдена")
-			http.Error(w, err.Error(), http.StatusUnauthorized)
-		}
-	}
-
-	err := user.CheckPassword(userAuth.Password)
+	user, err := service.Authenticate(gDB, &userAuth)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	// Выдача токена
-	token, err := entities.FindOrCreateToken(user.ID)
+	token, err := entities.FindOrCreateToken(user.ID, gDB)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
