@@ -5,6 +5,7 @@ import (
 	"fin_api_gateway/cmd/commands"
 	"fin_api_gateway/internal/config"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -34,6 +35,14 @@ func main() {
 	}()
 
 	commands.RunHttp(ctx, cfg)
+
+	commands.RunGRPCServer(ctx, cfg)
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+	<-stop
+
+	slog.Info("Shutting down server...")
 
 	if err != nil {
 		fmt.Println(err)

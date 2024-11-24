@@ -9,9 +9,6 @@ import (
 	"github.com/gorilla/mux"
 	"log/slog"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 )
 
@@ -45,11 +42,6 @@ func RunHttp(ctx context.Context, cfg *config.Config) {
 
 	slog.Info("Сервер http запущен")
 
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
-	<-stop
-
-	slog.Info("Shutting down server...")
 }
 
 func ping(w http.ResponseWriter, r *http.Request) {
