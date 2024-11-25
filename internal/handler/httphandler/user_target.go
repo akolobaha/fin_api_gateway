@@ -11,32 +11,32 @@ import (
 	"strconv"
 )
 
-func CreateUserSecurityFulfilHandler(w http.ResponseWriter, r *http.Request) {
-	var newUserSecFulfil entities.UserSecurityFulfil
+func CreateTargetHandler(w http.ResponseWriter, r *http.Request) {
+	var newUserTarget entities.UserTarget
 	json.NewDecoder(r.Body)
 
 	decoder := json.NewDecoder(r.Body)
 
-	err := decoder.Decode(&newUserSecFulfil)
-	err = newUserSecFulfil.Validate()
+	err := decoder.Decode(&newUserTarget)
+	err = newUserTarget.Validate()
 	gormDb := new(db.GormDB)
-	err = newUserSecFulfil.Save(r.Context(), gormDb.Connect())
+	err = newUserTarget.Save(r.Context(), gormDb.Connect())
 	ProcessHttp400(err, w)
 
 	if err == nil {
-		renderJSON(w, newUserSecFulfil)
+		renderJSON(w, newUserTarget)
 	}
 	return
 }
 
-func SecurityFulfilsList(w http.ResponseWriter, r *http.Request) {
+func TargetsList(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value("userId").(int64)
 
 	gDB := new(db.GormDB).Connect()
-	var results []entities.UserSecurityFulfil
+	var results []entities.UserTarget
 	paginatedDB := Paginate(r)(gDB)
-	err := paginatedDB.Table("user_security_fulfils").
-		Select("user_security_fulfils.*").
+	err := paginatedDB.Table("user_targets").
+		Select("user_targets.*").
 		Where("user_id = ?", userId).
 		Scan(&results).Error
 
@@ -47,12 +47,12 @@ func SecurityFulfilsList(w http.ResponseWriter, r *http.Request) {
 	renderJSON(w, results)
 }
 
-func SecurityFulfilUpdate(w http.ResponseWriter, r *http.Request) {
+func TargetUpdate(w http.ResponseWriter, r *http.Request) {
 	gDB := new(db.GormDB).Connect()
-	var updUserSecFulfil entities.UserSecurityFulfil
+	var updUserTarget entities.UserTarget
 
 	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&updUserSecFulfil); err != nil {
+	if err := decoder.Decode(&updUserTarget); err != nil {
 		http.Error(w, err.Error(), 400)
 		return
 	}
@@ -65,9 +65,9 @@ func SecurityFulfilUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userId := r.Context().Value("userId").(int64)
-	updUserSecFulfil.UserId = userId
+	updUserTarget.UserId = userId
 
-	var existingRecord entities.UserSecurityFulfil
+	var existingRecord entities.UserTarget
 	if err := gDB.Where("user_id = ? AND id = ?", userId, id).First(&existingRecord).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, "Record not found", 404)
@@ -78,10 +78,10 @@ func SecurityFulfilUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result := gDB.Model(&existingRecord).Updates(
-		entities.UserSecurityFulfil{
-			Ticker: updUserSecFulfil.Ticker,
-			PE:     updUserSecFulfil.PE,
-			PBv:    updUserSecFulfil.PBv,
+		entities.UserTarget{
+			Ticker: updUserTarget.Ticker,
+			PE:     updUserTarget.PE,
+			PBv:    updUserTarget.PBv,
 		})
 
 	if err := result.Error; err != nil {
@@ -92,7 +92,7 @@ func SecurityFulfilUpdate(w http.ResponseWriter, r *http.Request) {
 	renderJSON(w, existingRecord)
 }
 
-func SecurityFulfilDelete(w http.ResponseWriter, r *http.Request) {
+func TargetDelete(w http.ResponseWriter, r *http.Request) {
 	gDB := new(db.GormDB).Connect()
 	vars := mux.Vars(r)
 	id, err := strconv.ParseUint(vars["id"], 10, 0)
@@ -102,7 +102,7 @@ func SecurityFulfilDelete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userId := r.Context().Value("userId").(int64)
-	result := gDB.Where("id = ? AND user_id = ?", id, userId).Delete(&entities.UserSecurityFulfil{})
+	result := gDB.Where("id = ? AND user_id = ?", id, userId).Delete(&entities.UserTarget{})
 	if err := result.Error; err != nil {
 		http.Error(w, err.Error(), 500)
 	}

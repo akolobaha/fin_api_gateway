@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option go_package = "grpc/grpc_gen";
+
+service TickersService {
+  rpc GetMultipleTickers (TickersRequest) returns (MultipleTickerResponse);
+}
+
+message TickersRequest {
+}
+
+message TickersResponse {
+  string ticker = 1;
+  string shortname = 2;
+  string name = 3;
+  bool exists = 4;
+}
+
+message MultipleTickerResponse {
+  repeated TickersResponse tickers = 1; // Массив
+}

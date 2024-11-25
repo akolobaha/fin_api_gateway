@@ -85,9 +85,9 @@ paths:
           description: Bad Request
         '500':
           description: Internal Server Error
-  /security-fulfils:
+  /targets:
     post:
-      summary: Create security fulfil
+      summary: Создать целевой показатель
       description: Целевой показатель пользователя по эмитенту
       security:
         - BearerAuth: []
@@ -96,7 +96,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewSecurityFulfil'
+              $ref: '#/components/schemas/NewTarget'
       responses:
         '200':
           description: User successfully created
@@ -139,7 +139,7 @@ paths:
         '500':
           description: Internal Server Error
 
-  /security-fulfils/{id}:
+  /targets/{id}:
     patch:
       summary: Обновить целевой показатель
       security:
@@ -157,7 +157,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewSecurityFulfil'
+              $ref: '#/components/schemas/NewTarget'
       responses:
         '200':
           description: List of users
@@ -259,7 +259,7 @@ components:
           type: string
           description: Токен авторизации
 
-    NewSecurityFulfil:
+    NewTarget:
       type: object
       properties:
         ticker:

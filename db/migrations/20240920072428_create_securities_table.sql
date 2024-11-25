@@ -37,26 +37,26 @@ CREATE TABLE "user_tokens"
     expiration_time TIMESTAMP
 );
 
-CREATE TABLE user_security_fulfils
+CREATE TABLE user_targets
 (
     id               SERIAL PRIMARY KEY,
     ticker           VARCHAR(255) REFERENCES securities (ticker) ON DELETE CASCADE,
     user_id          int REFERENCES users(id),
-    p_e_msfo_fulfil  DECIMAL(10, 2),
-    p_bv_msfo_fulfil DECIMAL(10, 2)
+    p_e_msfo_target  DECIMAL(10, 2),
+    p_bv_msfo_target DECIMAL(10, 2)
 );
-COMMENT ON TABLE user_security_fulfils IS 'Цели пользователей по эмитентам';
-COMMENT ON COLUMN user_security_fulfils.ticker IS 'Тикер';
-COMMENT ON COLUMN user_security_fulfils.user_id IS 'ID пользователя';
-COMMENT ON COLUMN user_security_fulfils.p_e_msfo_fulfil IS 'Цель по P/E (МСФО)';
-COMMENT ON COLUMN user_security_fulfils.p_bv_msfo_fulfil IS 'Цель по P/BV (МСФО)';
+COMMENT ON TABLE user_targets IS 'Цели пользователей по эмитентам';
+COMMENT ON COLUMN user_targets.ticker IS 'Тикер';
+COMMENT ON COLUMN user_targets.user_id IS 'ID пользователя';
+COMMENT ON COLUMN user_targets.p_e_msfo_target IS 'Цель по P/E (МСФО)';
+COMMENT ON COLUMN user_targets.p_bv_msfo_target IS 'Цель по P/BV (МСФО)';
 
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
 SELECT 'down SQL query';
-DROP TABLE IF EXISTS user_security_fulfils;
+DROP TABLE IF EXISTS user_targets;
 DROP TABLE IF EXISTS user_tokens;
 DROP TABLE IF EXISTS securities;
 DROP TABLE IF EXISTS users;

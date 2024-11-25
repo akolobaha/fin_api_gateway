@@ -22,11 +22,11 @@ func RunHttp(ctx context.Context, cfg *config.Config) {
 	r.HandleFunc("/api/users", httphandler.AddUser).Methods("POST")
 	r.HandleFunc("/api/users", middleware.Auth(middleware.Logging(httphandler.UpdateUser))).Methods("PATCH")
 
-	r.HandleFunc("/api/security-fulfils", middleware.Auth(middleware.Logging(httphandler.SecurityFulfilsList))).Methods("GET")
-	r.HandleFunc("/api/security-fulfils", middleware.Auth(middleware.Logging(httphandler.CreateUserSecurityFulfilHandler))).Methods("POST")
+	r.HandleFunc("/api/targets", middleware.Auth(middleware.Logging(httphandler.TargetsList))).Methods("GET")
+	r.HandleFunc("/api/targets", middleware.Auth(middleware.Logging(httphandler.CreateTargetHandler))).Methods("POST")
 
-	r.HandleFunc("/api/security-fulfils/{id}", middleware.Auth(middleware.Logging(httphandler.SecurityFulfilUpdate))).Methods("PATCH")
-	r.HandleFunc("/api/security-fulfils/{id}", middleware.Auth(middleware.Logging(httphandler.SecurityFulfilDelete))).Methods("DELETE")
+	r.HandleFunc("/api/targets/{id}", middleware.Auth(middleware.Logging(httphandler.TargetUpdate))).Methods("PATCH")
+	r.HandleFunc("/api/targets/{id}", middleware.Auth(middleware.Logging(httphandler.TargetDelete))).Methods("DELETE")
 
 	go func() {
 		err := http.ListenAndServe(cfg.ServerAddress, r)
