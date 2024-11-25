@@ -19,9 +19,16 @@ func CreateTargetHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := decoder.Decode(&newUserTarget)
 	err = newUserTarget.Validate()
+	if err != nil {
+		jsonErrorResponse(w, err, 400)
+		return
+	}
 	gormDb := new(db.GormDB)
 	err = newUserTarget.Save(r.Context(), gormDb.Connect())
-	ProcessHttp400(err, w)
+	if err != nil {
+		jsonErrorResponse(w, err, 500)
+		return
+	}
 
 	if err == nil {
 		renderJSON(w, newUserTarget)
@@ -37,7 +44,7 @@ func TargetsList(w http.ResponseWriter, r *http.Request) {
 	paginatedDB := Paginate(r)(gDB)
 	err := paginatedDB.Table("user_targets").
 		Select("user_targets.*").
-		Where("user_id = ?", userId).
+		Where("user_id = ? AND achieved = false", userId).
 		Scan(&results).Error
 
 	if err != nil {
@@ -53,14 +60,14 @@ func TargetUpdate(w http.ResponseWriter, r *http.Request) {
 
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&updUserTarget); err != nil {
-		http.Error(w, err.Error(), 400)
+		jsonErrorResponse(w, err, 400)
 		return
 	}
 
 	vars := mux.Vars(r)
 	id, err := strconv.ParseUint(vars["id"], 10, 0)
 	if err != nil {
-		http.Error(w, "invalid syntax", 400)
+		jsonErrorResponse(w, err, 400)
 		return
 	}
 
@@ -68,20 +75,23 @@ func TargetUpdate(w http.ResponseWriter, r *http.Request) {
 	updUserTarget.UserId = userId
 
 	var existingRecord entities.UserTarget
-	if err := gDB.Where("user_id = ? AND id = ?", userId, id).First(&existingRecord).Error; err != nil {
+	if err := gDB.Where("user_id = ? AND id = ? AND achieved = false", userId, id).First(&existingRecord).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			http.Error(w, "Record not found", 404)
+			jsonErrorResponse(w, errors.New("Target not found or it has been achieved"), 404)
+			return
 		} else {
-			http.Error(w, err.Error(), 500)
+			jsonErrorResponse(w, err, 500)
+			return
 		}
-		return
 	}
 
 	result := gDB.Model(&existingRecord).Updates(
 		entities.UserTarget{
-			Ticker: updUserTarget.Ticker,
-			PE:     updUserTarget.PE,
-			PBv:    updUserTarget.PBv,
+			Ticker:             updUserTarget.Ticker,
+			ValuationRatio:     updUserTarget.ValuationRatio,
+			Value:              updUserTarget.Value,
+			FinancialReport:    updUserTarget.FinancialReport,
+			NotificationMethod: updUserTarget.NotificationMethod,
 		})
 
 	if err := result.Error; err != nil {
@@ -97,14 +107,15 @@ func TargetDelete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.ParseUint(vars["id"], 10, 0)
 	if err != nil {
-		http.Error(w, "invalid syntax", 400)
+		jsonErrorResponse(w, errors.New("invalid syntax"), 400)
 		return
 	}
 
 	userId := r.Context().Value("userId").(int64)
-	result := gDB.Where("id = ? AND user_id = ?", id, userId).Delete(&entities.UserTarget{})
+	result := gDB.Where("id = ? AND user_id = ? AND achieved = false", id, userId).Delete(&entities.UserTarget{})
 	if err := result.Error; err != nil {
-		http.Error(w, err.Error(), 500)
+		jsonErrorResponse(w, err, 500)
+		return
 	}
 
 	renderJSON(w, []string{"ok"})

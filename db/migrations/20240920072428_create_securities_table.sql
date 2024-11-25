@@ -37,19 +37,28 @@ CREATE TABLE "user_tokens"
     expiration_time TIMESTAMP
 );
 
+CREATE TYPE notification_method AS ENUM ('telegram', 'email', 'sms');
+COMMENT ON TYPE notification_method IS 'Механизм уведомления';
+CREATE TYPE financial_report AS ENUM ('msfo', 'rsbu');
+COMMENT ON TYPE financial_report IS 'Финансовая отчетность';
+CREATE type valuation_ratio AS ENUM ('pe', 'pbv');
+COMMENT ON TYPE valuation_ratio IS 'Коэффицент оценки';
+
 CREATE TABLE user_targets
 (
     id               SERIAL PRIMARY KEY,
     ticker           VARCHAR(255) REFERENCES securities (ticker) ON DELETE CASCADE,
     user_id          int REFERENCES users(id),
-    p_e_msfo_target  DECIMAL(10, 2),
-    p_bv_msfo_target DECIMAL(10, 2)
+    valuation_ratio valuation_ratio,
+    value DECIMAL(10, 2),
+    financial_report financial_report default 'rsbu',
+    achieved boolean default false,
+    notification_method notification_method DEFAULT 'email'
 );
 COMMENT ON TABLE user_targets IS 'Цели пользователей по эмитентам';
 COMMENT ON COLUMN user_targets.ticker IS 'Тикер';
 COMMENT ON COLUMN user_targets.user_id IS 'ID пользователя';
-COMMENT ON COLUMN user_targets.p_e_msfo_target IS 'Цель по P/E (МСФО)';
-COMMENT ON COLUMN user_targets.p_bv_msfo_target IS 'Цель по P/BV (МСФО)';
+COMMENT ON COLUMN user_targets.value IS 'Цель';
 
 -- +goose StatementEnd
 
@@ -60,5 +69,8 @@ DROP TABLE IF EXISTS user_targets;
 DROP TABLE IF EXISTS user_tokens;
 DROP TABLE IF EXISTS securities;
 DROP TABLE IF EXISTS users;
-DROP TYPE currency;
+DROP TYPE IF EXISTS currency;
+DROP TYPE IF EXISTS notification_method;
+DROP TYPE IF EXISTS financial_report;
+DROP TYPE IF EXISTS valuation_ratio;
 -- +goose StatementEnd
