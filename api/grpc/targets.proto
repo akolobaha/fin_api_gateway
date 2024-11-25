@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+option go_package = "grpc/grpc_gen";
+
+
+service TargetsService {
+  rpc GetTargets (TargetRequest) returns (TargetResponse);
+}
+
+// Получение целей сервисом обработки
+message TargetRequest {
+
+}
+
+message TargetItem{
+  int64 id = 1;
+  string ticker = 2;
+  User user = 3;
+  string ValuationRatio = 4;
+  float Value = 5;
+  string FinancialReport = 6;
+  bool Achieved = 7;
+  string NotificationMethod = 8;
+
+}
+
+message User {
+  int64 id = 1;
+  string name = 2;
+  string email = 3;
+  string telegram = 4;
+}
+
+message TargetResponse {
+  repeated TargetItem targets = 1;
+}
+
+// Отправка выполненных целей сервисом обработки
+

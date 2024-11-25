@@ -13,11 +13,15 @@ import (
 	"net"
 )
 
-type server struct {
+type tickerServer struct {
 	pb.TickersServiceServer
 }
 
-func (s *server) GetMultipleTickers(ctx context.Context, in *pb.TickersRequest) (*pb.MultipleTickerResponse, error) {
+type targetServer struct {
+	pb.TargetsServiceServer
+}
+
+func (s *tickerServer) GetMultipleTickers(ctx context.Context, in *pb.TickersRequest) (*pb.MultipleTickerResponse, error) {
 	gDB := new(db.GormDB).Connect()
 	securities := entities.Securities{}
 	gDB.Find(&securities)
@@ -35,6 +39,43 @@ func (s *server) GetMultipleTickers(ctx context.Context, in *pb.TickersRequest) 
 	return &pb.MultipleTickerResponse{Tickers: tickersResponse}, nil
 }
 
+func (s *targetServer) GetTargets(ctx context.Context, in *pb.TargetRequest) (*pb.TargetResponse, error) {
+	gDB := new(db.GormDB).Connect()
+	var userTargets []struct {
+		entities.UserTarget
+		entities.UserResponse
+	}
+
+	err := gDB.Table("user_targets").
+		Where("achieved = false").
+		Select("user_targets.*, users.*").
+		Joins("INNER JOIN users ON users.id = user_targets.user_id").
+		Scan(&userTargets).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	response := &pb.TargetResponse{}
+	for _, target := range userTargets {
+		response.Targets = append(response.Targets, &pb.TargetItem{
+			Id:              int64(target.UserTarget.ID),
+			Ticker:          target.UserTarget.Ticker,
+			ValuationRatio:  target.UserTarget.ValuationRatio,
+			Value:           target.UserTarget.Value,
+			FinancialReport: target.UserTarget.FinancialReport,
+			User: &pb.User{
+				Id:       target.UserId,
+				Name:     target.Name,
+				Email:    target.Email,
+				Telegram: target.Telegram,
+			},
+		})
+	}
+
+	return response, nil
+}
+
 func RunGRPCServer(ctx context.Context, cfg *config.Config) {
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%s", cfg.GrpcHost, cfg.GrpcPort))
 	if err != nil {
@@ -42,7 +83,8 @@ func RunGRPCServer(ctx context.Context, cfg *config.Config) {
 	}
 
 	s := grpc.NewServer()
-	pb.RegisterTickersServiceServer(s, &server{})
+	pb.RegisterTickersServiceServer(s, &tickerServer{})
+	pb.RegisterTargetsServiceServer(s, &targetServer{})
 
 	go func() {
 		slog.Info(fmt.Sprintf("Server is running on port: %s", cfg.GrpcPort))
