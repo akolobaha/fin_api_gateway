@@ -17,7 +17,7 @@ const VALUATION_RATIO_PE = "pe"
 const VALUATION_RATIO_PBV = "pbv"
 
 type UserTarget struct {
-	ID                 uint    `gorm:"primaryKey;column:id" json:"id"`
+	ID                 int64   `gorm:"primaryKey;column:id" json:"id"`
 	Ticker             string  `gorm:"not null;column:ticker" json:"ticker" validate:"required"`
 	UserId             int64   `gorm:"column:user_id" json:"-"`
 	ValuationRatio     string  `gorm:"not null;column:valuation_ratio" json:"valuation_ratio" validate:"required,oneof=pe pbv"`

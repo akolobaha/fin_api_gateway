@@ -5,11 +5,17 @@ option go_package = "grpc/grpc_gen";
 
 service TargetsService {
   rpc GetTargets (TargetRequest) returns (TargetResponse);
+  rpc SetTargetAchieved(TargetAchievedRequest) returns (TargetItem);
 }
 
 // Получение целей сервисом обработки
 message TargetRequest {
   string ticker = 1;
+}
+
+message TargetAchievedRequest {
+  int64 Id = 1;
+  bool Achieved = 2;
 }
 
 message TargetItem{

@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	TargetsService_GetTargets_FullMethodName = "/TargetsService/GetTargets"
+	TargetsService_GetTargets_FullMethodName        = "/TargetsService/GetTargets"
+	TargetsService_SetTargetAchieved_FullMethodName = "/TargetsService/SetTargetAchieved"
 )
 
 // TargetsServiceClient is the client API for TargetsService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TargetsServiceClient interface {
 	GetTargets(ctx context.Context, in *TargetRequest, opts ...grpc.CallOption) (*TargetResponse, error)
+	SetTargetAchieved(ctx context.Context, in *TargetAchievedRequest, opts ...grpc.CallOption) (*TargetItem, error)
 }
 
 type targetsServiceClient struct {
@@ -47,11 +49,22 @@ func (c *targetsServiceClient) GetTargets(ctx context.Context, in *TargetRequest
 	return out, nil
 }
 
+func (c *targetsServiceClient) SetTargetAchieved(ctx context.Context, in *TargetAchievedRequest, opts ...grpc.CallOption) (*TargetItem, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TargetItem)
+	err := c.cc.Invoke(ctx, TargetsService_SetTargetAchieved_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TargetsServiceServer is the server API for TargetsService service.
 // All implementations must embed UnimplementedTargetsServiceServer
 // for forward compatibility.
 type TargetsServiceServer interface {
 	GetTargets(context.Context, *TargetRequest) (*TargetResponse, error)
+	SetTargetAchieved(context.Context, *TargetAchievedRequest) (*TargetItem, error)
 	mustEmbedUnimplementedTargetsServiceServer()
 }
 
@@ -64,6 +77,9 @@ type UnimplementedTargetsServiceServer struct{}
 
 func (UnimplementedTargetsServiceServer) GetTargets(context.Context, *TargetRequest) (*TargetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTargets not implemented")
+}
+func (UnimplementedTargetsServiceServer) SetTargetAchieved(context.Context, *TargetAchievedRequest) (*TargetItem, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetTargetAchieved not implemented")
 }
 func (UnimplementedTargetsServiceServer) mustEmbedUnimplementedTargetsServiceServer() {}
 func (UnimplementedTargetsServiceServer) testEmbeddedByValue()                        {}
@@ -104,6 +120,24 @@ func _TargetsService_GetTargets_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TargetsService_SetTargetAchieved_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TargetAchievedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TargetsServiceServer).SetTargetAchieved(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TargetsService_SetTargetAchieved_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TargetsServiceServer).SetTargetAchieved(ctx, req.(*TargetAchievedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TargetsService_ServiceDesc is the grpc.ServiceDesc for TargetsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +148,10 @@ var TargetsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetTargets",
 			Handler:    _TargetsService_GetTargets_Handler,
+		},
+		{
+			MethodName: "SetTargetAchieved",
+			Handler:    _TargetsService_SetTargetAchieved_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

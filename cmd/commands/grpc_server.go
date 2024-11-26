@@ -82,6 +82,44 @@ func (s *targetServer) GetTargets(ctx context.Context, in *pb.TargetRequest) (*p
 	return response, nil
 }
 
+func (s *targetServer) SetTargetAchieved(ctx context.Context, in *pb.TargetAchievedRequest) (*pb.TargetItem, error) {
+	gDB := new(db.GormDB).Connect()
+	err := gDB.Model(&entities.UserTarget{}).Where("id = ?", in.GetId()).Update("achieved", in.GetAchieved()).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var target struct {
+		entities.UserTarget
+		entities.UserResponse
+	}
+
+	err = gDB.First(&entities.UserTarget{ID: in.GetId()}).
+		Select("user_targets.*, users.*").
+		Joins("INNER JOIN users ON users.id = user_targets.user_id").
+		Scan(&target).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.TargetItem{
+		Id:                 int64(target.UserTarget.ID),
+		Ticker:             target.UserTarget.Ticker,
+		ValuationRatio:     target.UserTarget.ValuationRatio,
+		Value:              target.UserTarget.Value,
+		FinancialReport:    target.UserTarget.FinancialReport,
+		NotificationMethod: target.UserTarget.NotificationMethod,
+		Achieved:           target.Achieved,
+		User: &pb.User{
+			Id:       target.UserResponse.ID,
+			Name:     target.UserResponse.Name,
+			Email:    target.UserResponse.Email,
+			Telegram: target.UserResponse.Telegram,
+		},
+	}, nil
+}
+
 func RunGRPCServer(ctx context.Context, cfg *config.Config) {
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%s", cfg.GrpcHost, cfg.GrpcPort))
 	if err != nil {
