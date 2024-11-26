@@ -25,8 +25,6 @@ const (
 // TargetsServiceClient is the client API for TargetsService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-//
-// Получение целей сервисом обработки
 type TargetsServiceClient interface {
 	GetTargets(ctx context.Context, in *TargetRequest, opts ...grpc.CallOption) (*TargetResponse, error)
 }
@@ -52,8 +50,6 @@ func (c *targetsServiceClient) GetTargets(ctx context.Context, in *TargetRequest
 // TargetsServiceServer is the server API for TargetsService service.
 // All implementations must embed UnimplementedTargetsServiceServer
 // for forward compatibility.
-//
-// Получение целей сервисом обработки
 type TargetsServiceServer interface {
 	GetTargets(context.Context, *TargetRequest) (*TargetResponse, error)
 	mustEmbedUnimplementedTargetsServiceServer()

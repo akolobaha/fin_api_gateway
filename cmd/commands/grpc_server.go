@@ -46,11 +46,16 @@ func (s *targetServer) GetTargets(ctx context.Context, in *pb.TargetRequest) (*p
 		entities.UserResponse
 	}
 
-	err := gDB.Table("user_targets").
+	q := gDB.Table("user_targets").
 		Where("achieved = false").
 		Select("user_targets.*, users.*").
-		Joins("INNER JOIN users ON users.id = user_targets.user_id").
-		Scan(&userTargets).Error
+		Joins("INNER JOIN users ON users.id = user_targets.user_id")
+
+	if in.GetTicker() != "" {
+		q.Where("user_targets.ticker = ?", in.Ticker)
+	}
+
+	err := q.Scan(&userTargets).Error
 
 	if err != nil {
 		return nil, err
@@ -59,16 +64,17 @@ func (s *targetServer) GetTargets(ctx context.Context, in *pb.TargetRequest) (*p
 	response := &pb.TargetResponse{}
 	for _, target := range userTargets {
 		response.Targets = append(response.Targets, &pb.TargetItem{
-			Id:              int64(target.UserTarget.ID),
-			Ticker:          target.UserTarget.Ticker,
-			ValuationRatio:  target.UserTarget.ValuationRatio,
-			Value:           target.UserTarget.Value,
-			FinancialReport: target.UserTarget.FinancialReport,
+			Id:                 int64(target.UserTarget.ID),
+			Ticker:             target.UserTarget.Ticker,
+			ValuationRatio:     target.UserTarget.ValuationRatio,
+			Value:              target.UserTarget.Value,
+			FinancialReport:    target.UserTarget.FinancialReport,
+			NotificationMethod: target.UserTarget.NotificationMethod,
 			User: &pb.User{
-				Id:       target.UserId,
-				Name:     target.Name,
-				Email:    target.Email,
-				Telegram: target.Telegram,
+				Id:       target.UserResponse.ID,
+				Name:     target.UserResponse.Name,
+				Email:    target.UserResponse.Email,
+				Telegram: target.UserResponse.Telegram,
 			},
 		})
 	}
