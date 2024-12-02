@@ -32,7 +32,15 @@ func Auth(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func getTokenEntityByToken(token string) (entities.UserToken, error) {
-	gDB := new(db.GormDB).Connect()
+	gDB := &db.GormDB{}
+	if err := gDB.Connect(); err != nil {
+		slog.Error("Could not connect to database: ", err)
+	}
+	defer func() {
+		if err := gDB.Close(); err != nil {
+			slog.Error("Error closing database connection: ", err)
+		}
+	}()
 	currentTime := time.Now()
 	formattedTime := currentTime.Format("2006-01-02 15:04:05")
 	userToken := entities.UserToken{}

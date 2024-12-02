@@ -6,6 +6,7 @@ import (
 	"fin_api_gateway/internal/entities"
 	"fin_api_gateway/internal/service"
 	"io"
+	"log/slog"
 	"net/http"
 )
 
@@ -17,15 +18,23 @@ func Auth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Аутентификация
-	gDB := new(db.GormDB).Connect()
-	user, err := service.Authenticate(gDB, &userAuth)
+	gDB := &db.GormDB{}
+	if err := gDB.Connect(); err != nil {
+		slog.Error("Could not connect to database: ", err)
+	}
+	defer func() {
+		if err := gDB.Close(); err != nil {
+			slog.Error("Error closing database connection: ", err)
+		}
+	}()
+	user, err := service.Authenticate(gDB.DB, &userAuth)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	// Выдача токена
-	token, err := entities.FindOrCreateToken(user.ID, gDB)
+	token, err := entities.FindOrCreateToken(user.ID, gDB.DB)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -37,7 +46,15 @@ func Auth(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddUser(w http.ResponseWriter, r *http.Request) {
-	gDB := new(db.GormDB).Connect()
+	gDB := &db.GormDB{}
+	if err := gDB.Connect(); err != nil {
+		slog.Error("Could not connect to database: ", err)
+	}
+	defer func() {
+		if err := gDB.Close(); err != nil {
+			slog.Error("Error closing database connection: ", err)
+		}
+	}()
 	var newUser entities.User
 	json.NewDecoder(r.Body)
 
@@ -70,7 +87,15 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
-	gDB := new(db.GormDB).Connect()
+	gDB := &db.GormDB{}
+	if err := gDB.Connect(); err != nil {
+		slog.Error("Could not connect to database: ", err)
+	}
+	defer func() {
+		if err := gDB.Close(); err != nil {
+			slog.Error("Error closing database connection: ", err)
+		}
+	}()
 	var user entities.User
 	if err := readBody(r, &user); err != nil {
 		w.WriteHeader(http.StatusUnprocessableEntity)

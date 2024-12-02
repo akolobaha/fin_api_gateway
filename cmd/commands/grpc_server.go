@@ -22,7 +22,24 @@ type targetServer struct {
 }
 
 func (s *tickerServer) GetMultipleTickers(ctx context.Context, in *pb.TickersRequest) (*pb.MultipleTickerResponse, error) {
-	gDB := new(db.GormDB).Connect()
+	gDB := &db.GormDB{}
+	if err := gDB.Connect(); err != nil {
+		slog.Error("Could not connect to database: ", err)
+	}
+	defer func() {
+		if err := gDB.Close(); err != nil {
+			slog.Error("Error closing database connection: ", err)
+		}
+	}()
+	if err := gDB.Connect(); err != nil {
+		slog.Error("Could not connect to database: ", err)
+	}
+	defer func() {
+		if err := gDB.Close(); err != nil {
+			slog.Error("Error closing database connection: ", err)
+		}
+	}()
+
 	securities := entities.Securities{}
 	gDB.Find(&securities)
 
@@ -40,7 +57,16 @@ func (s *tickerServer) GetMultipleTickers(ctx context.Context, in *pb.TickersReq
 }
 
 func (s *targetServer) GetTargets(ctx context.Context, in *pb.TargetRequest) (*pb.TargetResponse, error) {
-	gDB := new(db.GormDB).Connect()
+	gDB := &db.GormDB{}
+	if err := gDB.Connect(); err != nil {
+		slog.Error("Could not connect to database: ", err)
+	}
+	defer func() {
+		if err := gDB.Close(); err != nil {
+			slog.Error("Error closing database connection: ", err)
+		}
+	}()
+
 	var userTargets []struct {
 		entities.UserTarget
 		entities.UserResponse
@@ -83,7 +109,15 @@ func (s *targetServer) GetTargets(ctx context.Context, in *pb.TargetRequest) (*p
 }
 
 func (s *targetServer) SetTargetAchieved(ctx context.Context, in *pb.TargetAchievedRequest) (*pb.TargetItem, error) {
-	gDB := new(db.GormDB).Connect()
+	gDB := &db.GormDB{}
+	if err := gDB.Connect(); err != nil {
+		slog.Error("Could not connect to database: ", err)
+	}
+	defer func() {
+		if err := gDB.Close(); err != nil {
+			slog.Error("Error closing database connection: ", err)
+		}
+	}()
 	err := gDB.Model(&entities.UserTarget{}).Where("id = ?", in.GetId()).Update("achieved", in.GetAchieved()).Error
 	if err != nil {
 		return nil, err

@@ -7,6 +7,7 @@ import (
 	"fin_api_gateway/internal/entities"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
+	"log/slog"
 	"net/http"
 	"strconv"
 )
@@ -23,8 +24,17 @@ func CreateTargetHandler(w http.ResponseWriter, r *http.Request) {
 		jsonErrorResponse(w, err, 400)
 		return
 	}
-	gormDb := new(db.GormDB)
-	err = newUserTarget.Save(r.Context(), gormDb.Connect())
+	gDB := &db.GormDB{}
+	if err := gDB.Connect(); err != nil {
+		slog.Error("Could not connect to database: ", err)
+	}
+	defer func() {
+		if err := gDB.Close(); err != nil {
+			slog.Error("Error closing database connection: ", err)
+		}
+	}()
+
+	err = newUserTarget.Save(r.Context(), gDB.DB)
 	if err != nil {
 		jsonErrorResponse(w, err, 500)
 		return
@@ -39,10 +49,18 @@ func CreateTargetHandler(w http.ResponseWriter, r *http.Request) {
 func TargetsList(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value("userId").(int64)
 
-	gDB := new(db.GormDB).Connect()
+	gDB := &db.GormDB{}
+	if err := gDB.Connect(); err != nil {
+		slog.Error("Could not connect to database: ", err)
+	}
+	defer func() {
+		if err := gDB.Close(); err != nil {
+			slog.Error("Error closing database connection: ", err)
+		}
+	}()
 	var results []entities.UserTarget
-	paginatedDB := Paginate(r)(gDB)
-	err := paginatedDB.Table("user_targets").
+
+	err := gDB.Table("user_targets").
 		Select("user_targets.*").
 		Where("user_id = ? AND achieved = false", userId).
 		Scan(&results).Error
@@ -55,7 +73,15 @@ func TargetsList(w http.ResponseWriter, r *http.Request) {
 }
 
 func TargetUpdate(w http.ResponseWriter, r *http.Request) {
-	gDB := new(db.GormDB).Connect()
+	gDB := &db.GormDB{}
+	if err := gDB.Connect(); err != nil {
+		slog.Error("Could not connect to database: ", err)
+	}
+	defer func() {
+		if err := gDB.Close(); err != nil {
+			slog.Error("Error closing database connection: ", err)
+		}
+	}()
 	var updUserTarget entities.UserTarget
 
 	decoder := json.NewDecoder(r.Body)
@@ -103,7 +129,15 @@ func TargetUpdate(w http.ResponseWriter, r *http.Request) {
 }
 
 func TargetDelete(w http.ResponseWriter, r *http.Request) {
-	gDB := new(db.GormDB).Connect()
+	gDB := &db.GormDB{}
+	if err := gDB.Connect(); err != nil {
+		slog.Error("Could not connect to database: ", err)
+	}
+	defer func() {
+		if err := gDB.Close(); err != nil {
+			slog.Error("Error closing database connection: ", err)
+		}
+	}()
 	vars := mux.Vars(r)
 	id, err := strconv.ParseUint(vars["id"], 10, 0)
 	if err != nil {
