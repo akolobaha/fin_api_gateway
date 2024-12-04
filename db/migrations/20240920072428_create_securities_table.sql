@@ -41,7 +41,7 @@ CREATE TYPE notification_method AS ENUM ('telegram', 'email', 'sms');
 COMMENT ON TYPE notification_method IS 'Механизм уведомления';
 CREATE TYPE financial_report AS ENUM ('msfo', 'rsbu');
 COMMENT ON TYPE financial_report IS 'Финансовая отчетность';
-CREATE type valuation_ratio AS ENUM ('pe', 'pbv');
+CREATE type valuation_ratio AS ENUM ('pe', 'pbv', 'price', 'ps');
 COMMENT ON TYPE valuation_ratio IS 'Коэффицент оценки';
 
 CREATE TABLE user_targets

@@ -40,6 +40,8 @@ func Auth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	slog.Info("Пользователь зарегистрирован", user.Email)
+
 	renderJSON(w, &entities.AuthResponse{
 		Token: token.Token,
 	})

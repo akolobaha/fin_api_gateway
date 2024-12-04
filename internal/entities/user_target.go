@@ -20,7 +20,7 @@ type UserTarget struct {
 	ID                 int64   `gorm:"primaryKey;column:id" json:"id"`
 	Ticker             string  `gorm:"not null;column:ticker" json:"ticker" validate:"required"`
 	UserId             int64   `gorm:"column:user_id" json:"-"`
-	ValuationRatio     string  `gorm:"not null;column:valuation_ratio" json:"valuation_ratio" validate:"required,oneof=pe pbv"`
+	ValuationRatio     string  `gorm:"not null;column:valuation_ratio" json:"valuation_ratio" validate:"required,oneof=pe pbv ps price"`
 	Value              float32 `gorm:"not null;column:value" json:"value"`
 	FinancialReport    string  `gorm:"not null;column:financial_report;default:rsbu" json:"financial_report" validate:"required,oneof=rsbu msfo"`
 	Achieved           bool    `gorm:"not null;column:achieved;default:false" json:"-"`

@@ -266,14 +266,23 @@ components:
           type: string
           description: Тикер
           example: "GAZP"
-        pe:
+        value:
           type: number
-          description: целевой P / E
-          example: 10.1
-        pbv:
-          type: number
-          description: целевой P / Bv
-          example: 10.1
+          description: целевое
+          example: 0.5
+        valuation_ratio:
+          type: string
+          description: Отслеживаемый показатель
+          example: "pbv"
+        financial_report:
+          type: string
+          description: Тип отчетности
+          example: "rsbu"
+        notification_method:
+          type: string
+          description: email
+          example: "email@email.ru"
+
 
       required:
         - telegram
