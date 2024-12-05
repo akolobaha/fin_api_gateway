@@ -20,11 +20,11 @@ func Auth(w http.ResponseWriter, r *http.Request) {
 	// Аутентификация
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", err)
+		slog.Error("Could not connect to database: ", "error", err.Error())
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", err)
+			slog.Error("Error closing database connection: ", "error", err)
 		}
 	}()
 	user, err := service.Authenticate(gDB.DB, &userAuth)
@@ -40,7 +40,7 @@ func Auth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	slog.Info("Пользователь зарегистрирован", user.Email)
+	slog.Info("Пользователь зарегистрирован", "email", user.Email)
 
 	renderJSON(w, &entities.AuthResponse{
 		Token: token.Token,
@@ -50,11 +50,11 @@ func Auth(w http.ResponseWriter, r *http.Request) {
 func AddUser(w http.ResponseWriter, r *http.Request) {
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", err)
+		slog.Error("Could not connect to database: ", "error", err)
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", err)
+			slog.Error("Error closing database connection: ", "error", err)
 		}
 	}()
 	var newUser entities.User
@@ -91,11 +91,11 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", err)
+		slog.Error("Could not connect to database: ", "error", err.Error())
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", err)
+			slog.Error("Error closing database connection: ", "error", err)
 		}
 	}()
 	var user entities.User

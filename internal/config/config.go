@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
+	"log/slog"
 )
 
 type Config struct {
@@ -15,6 +16,7 @@ type Config struct {
 	GrpcHost              string `env:"GRPC_HOST"`
 	GrpcPort              string `env:"GRPC_PORT"`
 	TokenExpirationPeriod string `env:"TOKEN_EXPIRATION_PERIOD"`
+	LogLevel              string `env:"LOG_LEVEL"`
 }
 
 var DbDsn string
@@ -25,7 +27,24 @@ func Parse(s string) (*Config, error) {
 		return nil, err
 	}
 
+	setLogLevel(c.LogLevel)
+
 	return c, nil
+}
+
+func setLogLevel(level string) {
+	switch level {
+	case "debug":
+		slog.SetLogLoggerLevel(-4)
+	case "info":
+		slog.SetLogLoggerLevel(0)
+	case "warn":
+		slog.SetLogLoggerLevel(4)
+	case "error":
+		slog.SetLogLoggerLevel(8)
+	default:
+		slog.SetLogLoggerLevel(4)
+	}
 }
 
 func InitDbDSN(c *Config) {

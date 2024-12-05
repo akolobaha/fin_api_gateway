@@ -24,19 +24,19 @@ type targetServer struct {
 func (s *tickerServer) GetMultipleTickers(ctx context.Context, in *pb.TickersRequest) (*pb.MultipleTickerResponse, error) {
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", err)
+		slog.Error("Could not connect to database: ", "error", err.Error())
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", err)
+			slog.Error("Error closing database connection: ", "error", err.Error())
 		}
 	}()
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", err)
+		slog.Error("Could not connect to database: ", "error", err.Error())
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", err)
+			slog.Error("Error closing database connection: ", "error", err.Error())
 		}
 	}()
 
@@ -59,11 +59,11 @@ func (s *tickerServer) GetMultipleTickers(ctx context.Context, in *pb.TickersReq
 func (s *targetServer) GetTargets(ctx context.Context, in *pb.TargetRequest) (*pb.TargetResponse, error) {
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", err)
+		slog.Error("Could not connect to database: ", "error", err.Error())
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", err)
+			slog.Error("Error closing database connection: ", "error", err.Error())
 		}
 	}()
 
@@ -111,11 +111,11 @@ func (s *targetServer) GetTargets(ctx context.Context, in *pb.TargetRequest) (*p
 func (s *targetServer) SetTargetAchieved(ctx context.Context, in *pb.TargetAchievedRequest) (*pb.TargetItem, error) {
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", err)
+		slog.Error("Could not connect to database: ", "error", err.Error())
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", err)
+			slog.Error("Error closing database connection: ", "error", err.Error())
 		}
 	}()
 	err := gDB.Model(&entities.UserTarget{}).Where("id = ?", in.GetId()).Update("achieved", in.GetAchieved()).Error
@@ -168,7 +168,7 @@ func RunGRPCServer(ctx context.Context, cfg *config.Config) {
 		slog.Info(fmt.Sprintf("Server is running on port: %s", cfg.GrpcPort))
 
 		if err := s.Serve(lis); err != nil {
-			slog.Error("failed to serve: ", err.Error())
+			slog.Error("failed to serve: ", "error", err.Error())
 		}
 	}()
 

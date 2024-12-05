@@ -13,7 +13,7 @@ type User struct {
 }
 
 type UserResponse struct {
-	ID int64 `gorm:"primaryKey" json:"id"`
+	ID int64 `gorm:"primaryKey" json:"user_id"`
 	UserBase
 }
 

@@ -26,11 +26,11 @@ func CreateTargetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", err)
+		slog.Error("Could not connect to database: ", "error", err)
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", err)
+			slog.Error("Error closing database connection: ", "error", err.Error())
 		}
 	}()
 
@@ -51,11 +51,11 @@ func TargetsList(w http.ResponseWriter, r *http.Request) {
 
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", err)
+		slog.Error("Could not connect to database: ", "error", err.Error())
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", err)
+			slog.Error("Error closing database connection: ", "error", err.Error())
 		}
 	}()
 	var results []entities.UserTarget
@@ -75,11 +75,11 @@ func TargetsList(w http.ResponseWriter, r *http.Request) {
 func TargetUpdate(w http.ResponseWriter, r *http.Request) {
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", err)
+		slog.Error("Could not connect to database: ", "error", err.Error())
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", err)
+			slog.Error("Error closing database connection: ", "error", err.Error())
 		}
 	}()
 	var updUserTarget entities.UserTarget
@@ -131,11 +131,11 @@ func TargetUpdate(w http.ResponseWriter, r *http.Request) {
 func TargetDelete(w http.ResponseWriter, r *http.Request) {
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", err)
+		slog.Error("Could not connect to database: ", "error", err.Error())
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", err)
+			slog.Error("Error closing database connection: ", "error", err.Error())
 		}
 	}()
 	vars := mux.Vars(r)

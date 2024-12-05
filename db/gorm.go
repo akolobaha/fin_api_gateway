@@ -19,7 +19,8 @@ func (g *GormDB) Connect() error {
 	}), &gorm.Config{})
 
 	if err != nil {
-		slog.Error("Failed to connect to database: ", err.Error())
+		slog.Error("Failed to connect to database: ", "error", err.Error())
+
 		return err
 	}
 
@@ -33,13 +34,13 @@ func (g *GormDB) Close() error {
 
 	dbInstance, err := g.DB.DB()
 	if err != nil {
-		slog.Error("Failed to get DB instance: ", err.Error())
+		slog.Error("Failed to get DB instance: ", "error", err.Error())
 		return err
 	}
 
 	err = dbInstance.Close()
 	if err != nil {
-		slog.Error("Failed to close database connection: ", err.Error())
+		slog.Error("Failed to close database connection: ", "error", err.Error())
 		return err
 	}
 
