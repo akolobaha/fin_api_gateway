@@ -39,6 +39,8 @@ func TestAuthenticate_UserFoundAndPasswordCorrect(t *testing.T) {
 		},
 	}
 
+	testUser.IsActive = true
+
 	// Валидация
 	testUser.Validate()
 
@@ -84,6 +86,7 @@ func TestAuthenticate_IncorrectPassword(t *testing.T) {
 			Email: "test@example.com",
 		},
 	}
+	testUser.IsActive = true
 	db.Create(&testUser)
 
 	ua := &UserAuth{Email: "test@example.com", Password: "wrongpassword"}

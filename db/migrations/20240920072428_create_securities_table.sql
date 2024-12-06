@@ -19,11 +19,13 @@ COMMENT ON TYPE currency IS 'Валюты';
 
 CREATE TABLE "users"
 (
-    id       SERIAL PRIMARY KEY,
-    name     VARCHAR(255) NOT NULL,
-    email    VARCHAR(255) NOT NULL UNIQUE,
-    telegram VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL
+    id                       SERIAL PRIMARY KEY,
+    name                     VARCHAR(255) NOT NULL,
+    email                    VARCHAR(255) NOT NULL UNIQUE,
+    is_active                BOOLEAN      default FALSE,
+    email_confirmation_token VARCHAR(255) DEFAULT NULL,
+    telegram                 VARCHAR(255) DEFAULT NULL,
+    password                 VARCHAR(255) NOT NULL
 );
 COMMENT ON COLUMN "users".name IS 'Имя';
 COMMENT ON COLUMN "users".email IS 'Email';
@@ -31,9 +33,9 @@ COMMENT ON COLUMN "users".telegram IS 'Телеграмм';
 
 CREATE TABLE "user_tokens"
 (
-    id SERIAL PRIMARY KEY,
-    token VARCHAR(255) NOT NULL UNIQUE,
-    user_id int REFERENCES users(id),
+    id              SERIAL PRIMARY KEY,
+    token           VARCHAR(255) NOT NULL UNIQUE,
+    user_id         int REFERENCES users (id),
     expiration_time TIMESTAMP
 );
 
@@ -46,13 +48,13 @@ COMMENT ON TYPE valuation_ratio IS 'Коэффицент оценки';
 
 CREATE TABLE user_targets
 (
-    id               SERIAL PRIMARY KEY,
-    ticker           VARCHAR(255) REFERENCES securities (ticker) ON DELETE CASCADE,
-    user_id          int REFERENCES users(id),
-    valuation_ratio valuation_ratio,
-    value DECIMAL(10, 2),
-    financial_report financial_report default 'rsbu',
-    achieved boolean default false,
+    id                  SERIAL PRIMARY KEY,
+    ticker              VARCHAR(255) REFERENCES securities (ticker) ON DELETE CASCADE,
+    user_id             int REFERENCES users (id),
+    valuation_ratio     valuation_ratio,
+    value               DECIMAL(10, 2),
+    financial_report    financial_report    default 'rsbu',
+    achieved            boolean             default false,
     notification_method notification_method DEFAULT 'email'
 );
 COMMENT ON TABLE user_targets IS 'Цели пользователей по эмитентам';

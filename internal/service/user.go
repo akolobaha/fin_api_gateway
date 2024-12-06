@@ -15,7 +15,7 @@ type UserAuth struct {
 func Authenticate(conn *gorm.DB, ua *UserAuth) (entities.User, error) {
 	// Проверка на существование в базе
 	var user entities.User
-	if err := conn.Where("email = ?", ua.Email).First(&user).Error; err != nil {
+	if err := conn.Where("email = ? AND is_active = TRUE", ua.Email).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Info("Запись не найдена")
 			return user, gorm.ErrRecordNotFound

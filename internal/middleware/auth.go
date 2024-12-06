@@ -45,7 +45,9 @@ func getTokenEntityByToken(token string) (entities.UserToken, error) {
 	formattedTime := currentTime.Format("2006-01-02 15:04:05")
 	userToken := entities.UserToken{}
 
-	if err := gDB.Where("token = ? AND expiration_time > ?", token, formattedTime).First(&userToken).Error; err != nil {
+	if err := gDB.
+		Joins("JOIN users u ON u.id = user_tokens.user_id").
+		Where("token = ? AND expiration_time > ? AND u.is_active = TRUE", token, formattedTime).First(&userToken).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Info("Токен не найден или истек")
 			return userToken, err

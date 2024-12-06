@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+const ConfirmEmailPath = "/api/users/confirm-email"
+
 func RunHttp(ctx context.Context, cfg *config.Config) {
 	r := mux.NewRouter()
 
@@ -19,7 +21,8 @@ func RunHttp(ctx context.Context, cfg *config.Config) {
 
 	r.HandleFunc("/api/auth", httphandler.Auth).Methods("POST")
 
-	r.HandleFunc("/api/users", httphandler.AddUser).Methods("POST")
+	r.HandleFunc("/api/users", httphandler.AddUserWithRabbitHandler(cfg, ConfirmEmailPath)).Methods("POST")
+	r.HandleFunc(ConfirmEmailPath, httphandler.ConfirmEmail).Methods("GET")
 	r.HandleFunc("/api/users", middleware.Auth(middleware.Logging(httphandler.UpdateUser))).Methods("PATCH")
 
 	r.HandleFunc("/api/targets", middleware.Auth(middleware.Logging(httphandler.TargetsList))).Methods("GET")

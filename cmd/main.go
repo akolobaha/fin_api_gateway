@@ -13,10 +13,6 @@ import (
 
 const defaultEnvFilePath = ".env"
 
-//const defaultEnvFilePath = "/usr/local/bin/.env"
-
-//const defaultEnvFilePath = ".env"
-
 func main() {
 	cfg, err := config.Parse(defaultEnvFilePath)
 
@@ -35,7 +31,6 @@ func main() {
 	}()
 
 	commands.RunHttp(ctx, cfg)
-
 	commands.RunGRPCServer(ctx, cfg)
 
 	stop := make(chan os.Signal, 1)

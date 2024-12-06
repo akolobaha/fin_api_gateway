@@ -1,7 +1,8 @@
 package middleware
 
 import (
-	"log"
+	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 )
@@ -19,12 +20,12 @@ func Logging(next http.HandlerFunc) http.HandlerFunc {
 		duration := time.Since(start)
 
 		// Логируем информацию о запросе
-		log.Printf(
+		slog.Info(fmt.Sprintf(
 			"%s %s %s %v",
 			r.Method,
 			r.RequestURI,
 			r.RemoteAddr,
 			duration,
-		)
+		))
 	}
 }

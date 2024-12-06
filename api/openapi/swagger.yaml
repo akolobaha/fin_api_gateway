@@ -85,6 +85,16 @@ paths:
           description: Bad Request
         '500':
           description: Internal Server Error
+  /users/confirm-email?token={token}:
+    get:
+      summary: Подтверждение email
+    parameters:
+      - name: token
+        in: query
+        description: токен
+        example: mytoken
+        schema:
+          type: string
   /targets:
     post:
       summary: Создать целевой показатель

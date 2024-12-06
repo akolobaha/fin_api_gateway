@@ -8,7 +8,6 @@ import (
 	pb "fin_api_gateway/pkg/grpc"
 	"fmt"
 	"google.golang.org/grpc"
-	"log"
 	"log/slog"
 	"net"
 )
@@ -157,7 +156,7 @@ func (s *targetServer) SetTargetAchieved(ctx context.Context, in *pb.TargetAchie
 func RunGRPCServer(ctx context.Context, cfg *config.Config) {
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%s", cfg.GrpcHost, cfg.GrpcPort))
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		slog.Error("failed to listen: %v", "error", err)
 	}
 
 	s := grpc.NewServer()
