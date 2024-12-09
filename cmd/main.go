@@ -4,14 +4,18 @@ import (
 	"context"
 	"fin_api_gateway/cmd/commands"
 	"fin_api_gateway/internal/config"
-	"fmt"
-	"log/slog"
+	"fin_api_gateway/internal/log"
+	"fin_api_gateway/internal/monitoring"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
 const defaultEnvFilePath = ".env"
+
+func init() {
+	monitoring.RegisterPrometheus()
+}
 
 func main() {
 	cfg, err := config.Parse(defaultEnvFilePath)
@@ -22,25 +26,18 @@ func main() {
 	config.InitDbDSN(cfg)
 
 	ctx, cancel := context.WithCancel(context.Background())
-
+	monitoring.RunPrometheusServer(cfg.GetPrometheusURL())
+	exit := make(chan os.Signal, 1)
 	go func() {
-		exit := make(chan os.Signal, 1)
 		signal.Notify(exit, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
 		<-exit
 		cancel()
 	}()
 
-	commands.RunHttp(ctx, cfg)
+	go commands.RunHttp(ctx, cfg)
 	commands.RunGRPCServer(ctx, cfg)
 
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
-	<-stop
+	<-ctx.Done()
 
-	slog.Info("Shutting down server...")
-
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	log.Info("server is shutting down...")
 }

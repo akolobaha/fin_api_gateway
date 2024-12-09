@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fin_api_gateway/db"
 	"fin_api_gateway/internal/entities"
+	"fin_api_gateway/internal/log"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
-	"log/slog"
 	"net/http"
 	"strconv"
 )
@@ -26,11 +26,11 @@ func CreateTargetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", "error", err)
+		log.Error("Could not connect to database: ", err)
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", "error", err.Error())
+			log.Error("Error closing database connection: ", err)
 		}
 	}()
 
@@ -51,11 +51,11 @@ func TargetsList(w http.ResponseWriter, r *http.Request) {
 
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", "error", err.Error())
+		log.Error("Could not connect to database: ", err)
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", "error", err.Error())
+			log.Error("Error closing database connection: ", err)
 		}
 	}()
 	var results []entities.UserTarget
@@ -75,11 +75,11 @@ func TargetsList(w http.ResponseWriter, r *http.Request) {
 func TargetUpdate(w http.ResponseWriter, r *http.Request) {
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", "error", err.Error())
+		log.Error("Could not connect to database: ", err)
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", "error", err.Error())
+			log.Error("Error closing database connection: ", err)
 		}
 	}()
 	var updUserTarget entities.UserTarget
@@ -131,11 +131,11 @@ func TargetUpdate(w http.ResponseWriter, r *http.Request) {
 func TargetDelete(w http.ResponseWriter, r *http.Request) {
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", "error", err.Error())
+		log.Error("Could not connect to database: ", err)
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", "error", err.Error())
+			log.Error("Error closing database connection: ", err)
 		}
 	}()
 	vars := mux.Vars(r)

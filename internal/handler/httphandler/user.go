@@ -6,12 +6,12 @@ import (
 	"fin_api_gateway/db"
 	"fin_api_gateway/internal/config"
 	"fin_api_gateway/internal/entities"
+	"fin_api_gateway/internal/log"
 	"fin_api_gateway/internal/service"
 	"fin_api_gateway/internal/transport"
 	"fmt"
 	"gorm.io/gorm"
 	"io"
-	"log/slog"
 	"net/http"
 )
 
@@ -25,11 +25,11 @@ func Auth(w http.ResponseWriter, r *http.Request) {
 	// Аутентификация
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", "error", err.Error())
+		log.Error("Could not connect to database: ", err)
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", "error", err)
+			log.Error("Error closing database connection: ", err)
 		}
 	}()
 	user, err := service.Authenticate(gDB.DB, &userAuth)
@@ -45,7 +45,7 @@ func Auth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	slog.Info("Пользователь зарегистрирован", "email", user.Email)
+	log.Info(fmt.Sprintf("Пользователь зарегистрирован: %s", user.Email))
 
 	renderJSON(w, &entities.AuthResponse{
 		Token: token.Token,
@@ -74,11 +74,11 @@ func (h *WithCfg) AddUser(w http.ResponseWriter, r *http.Request) {
 	// Инициализация БД
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", "error", err)
+		log.Error("Could not connect to database: ", err)
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", "error", err)
+			log.Error("Error closing database connection: ", err)
 		}
 	}()
 	var newUser entities.User
@@ -95,12 +95,12 @@ func (h *WithCfg) AddUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := newUser.SetPasswordHash(); err != nil {
-		slog.Error("Error setting password hash: ", "error", err)
+		log.Error("Failed to connect to RabbitMQ:", err)
 		return
 	}
 
 	if err := newUser.SetEmailConfirmationToken(); err != nil {
-		slog.Error("Error setting email confirmation token: ", "error", err)
+		log.Error("Error setting email confirmation token: ", err)
 		return
 	}
 
@@ -137,11 +137,11 @@ func ConfirmEmail(w http.ResponseWriter, r *http.Request) {
 	}
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", "error", err.Error())
+		log.Error("Could not connect to database: ", err)
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", "error", err)
+			log.Error("Error closing database connection: ", err)
 		}
 	}()
 
@@ -150,7 +150,7 @@ func ConfirmEmail(w http.ResponseWriter, r *http.Request) {
 
 	if err := gDB.Where(user).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			slog.Info(fmt.Sprintf("Польозватель с email_confirmation_token = %s не найден", param))
+			log.Info(fmt.Sprintf("Польозватель с email_confirmation_token = %s не найден", param))
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -160,9 +160,9 @@ func ConfirmEmail(w http.ResponseWriter, r *http.Request) {
 	user.IsActive = true
 
 	if err := gDB.Save(&user).Error; err != nil {
-		slog.Info("Ошибка при обновлении пользователя:", "info", err)
+		log.Info(fmt.Sprintf("Ошибка при обновлении пользователя: %s", err))
 	} else {
-		slog.Info("Пользователь успешно обновлен: %+v\n", "info", user)
+		log.Info("Пользователь успешно обновлен: %+v\n")
 	}
 
 	w.WriteHeader(http.StatusNoContent)
@@ -171,11 +171,11 @@ func ConfirmEmail(w http.ResponseWriter, r *http.Request) {
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", "error", err.Error())
+		log.Error("Could not connect to database: ", err)
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", "error", err)
+			log.Error("Error closing database connection: ", err)
 		}
 	}()
 	var user entities.User

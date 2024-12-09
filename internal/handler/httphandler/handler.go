@@ -3,7 +3,6 @@ package httphandler
 import (
 	"encoding/json"
 	"gorm.io/gorm"
-	"log/slog"
 	"net/http"
 	"strconv"
 )
@@ -42,13 +41,4 @@ func jsonErrorResponse(w http.ResponseWriter, err error, statusCode int) {
 
 	response := map[string]string{"error": err.Error()}
 	json.NewEncoder(w).Encode(response)
-}
-
-func ProcessHttp400(err error, w http.ResponseWriter) {
-	if err != nil {
-		slog.Error(err.Error())
-
-		jsonErrorResponse(w, err, 400)
-		return
-	}
 }

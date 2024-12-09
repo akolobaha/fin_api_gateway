@@ -1,5 +1,10 @@
 linters:
   enable:
-    - golint
-    - gofmt
-    - staticcheck
+    - errcheck
+    - revive
+
+issues:
+  exclude-dirs:
+    - vendor
+    - lib/
+    - go/pkg/mod

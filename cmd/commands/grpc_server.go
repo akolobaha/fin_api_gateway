@@ -5,10 +5,10 @@ import (
 	"fin_api_gateway/db"
 	"fin_api_gateway/internal/config"
 	"fin_api_gateway/internal/entities"
+	"fin_api_gateway/internal/log"
 	pb "fin_api_gateway/pkg/grpc"
 	"fmt"
 	"google.golang.org/grpc"
-	"log/slog"
 	"net"
 )
 
@@ -23,19 +23,19 @@ type targetServer struct {
 func (s *tickerServer) GetMultipleTickers(ctx context.Context, in *pb.TickersRequest) (*pb.MultipleTickerResponse, error) {
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", "error", err.Error())
+		log.Error("Could not connect to database: ", err)
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", "error", err.Error())
+			log.Error("Error closing database connection: ", err)
 		}
 	}()
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", "error", err.Error())
+		log.Error("Could not connect to database: ", err)
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", "error", err.Error())
+			log.Error("Error closing database connection: ", err)
 		}
 	}()
 
@@ -58,11 +58,11 @@ func (s *tickerServer) GetMultipleTickers(ctx context.Context, in *pb.TickersReq
 func (s *targetServer) GetTargets(ctx context.Context, in *pb.TargetRequest) (*pb.TargetResponse, error) {
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", "error", err.Error())
+		log.Error("Could not connect to database: ", err)
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", "error", err.Error())
+			log.Error("Error closing database connection: ", err)
 		}
 	}()
 
@@ -110,11 +110,11 @@ func (s *targetServer) GetTargets(ctx context.Context, in *pb.TargetRequest) (*p
 func (s *targetServer) SetTargetAchieved(ctx context.Context, in *pb.TargetAchievedRequest) (*pb.TargetItem, error) {
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", "error", err.Error())
+		log.Error("Could not connect to database: ", err)
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", "error", err.Error())
+			log.Error("Error closing database connection: ", err)
 		}
 	}()
 	err := gDB.Model(&entities.UserTarget{}).Where("id = ?", in.GetId()).Update("achieved", in.GetAchieved()).Error
@@ -156,7 +156,7 @@ func (s *targetServer) SetTargetAchieved(ctx context.Context, in *pb.TargetAchie
 func RunGRPCServer(ctx context.Context, cfg *config.Config) {
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%s", cfg.GrpcHost, cfg.GrpcPort))
 	if err != nil {
-		slog.Error("failed to listen: %v", "error", err)
+		log.Error("failed to listen: ", err)
 	}
 
 	s := grpc.NewServer()
@@ -164,12 +164,13 @@ func RunGRPCServer(ctx context.Context, cfg *config.Config) {
 	pb.RegisterTargetsServiceServer(s, &targetServer{})
 
 	go func() {
-		slog.Info(fmt.Sprintf("Server is running on port: %s", cfg.GrpcPort))
+		log.Info(fmt.Sprintf("Server is running on port: %s", cfg.GrpcPort))
 
 		if err := s.Serve(lis); err != nil {
-			slog.Error("failed to serve: ", "error", err.Error())
+			log.Error("failed to serve: ", err)
 		}
 	}()
 
-	slog.Info("Сервер grpc запущен")
+	<-ctx.Done()
+	s.Stop()
 }

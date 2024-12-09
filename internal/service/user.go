@@ -3,8 +3,8 @@ package service
 import (
 	"errors"
 	"fin_api_gateway/internal/entities"
+	"fin_api_gateway/internal/log"
 	"gorm.io/gorm"
-	"log/slog"
 )
 
 type UserAuth struct {
@@ -17,7 +17,7 @@ func Authenticate(conn *gorm.DB, ua *UserAuth) (entities.User, error) {
 	var user entities.User
 	if err := conn.Where("email = ? AND is_active = TRUE", ua.Email).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			slog.Info("Запись не найдена")
+			log.Info("Запись не найдена")
 			return user, gorm.ErrRecordNotFound
 		}
 	}
@@ -25,7 +25,7 @@ func Authenticate(conn *gorm.DB, ua *UserAuth) (entities.User, error) {
 	// Полверка пароля
 	err := user.CheckPassword(ua.Password)
 	if err != nil {
-		slog.Info("Пароль не верный")
+		log.Info("Пароль не верный")
 		return user, errors.New("incorrect password")
 	}
 

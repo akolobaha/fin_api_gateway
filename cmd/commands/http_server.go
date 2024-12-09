@@ -4,10 +4,10 @@ import (
 	"context"
 	"fin_api_gateway/internal/config"
 	"fin_api_gateway/internal/handler/httphandler"
+	"fin_api_gateway/internal/log"
 	"fin_api_gateway/internal/middleware"
 	"fmt"
 	"github.com/gorilla/mux"
-	"log/slog"
 	"net/http"
 	"time"
 )
@@ -31,19 +31,12 @@ func RunHttp(ctx context.Context, cfg *config.Config) {
 	r.HandleFunc("/api/targets/{id}", middleware.Auth(middleware.Logging(httphandler.TargetUpdate))).Methods("PATCH")
 	r.HandleFunc("/api/targets/{id}", middleware.Auth(middleware.Logging(httphandler.TargetDelete))).Methods("DELETE")
 
-	go func() {
-		err := http.ListenAndServe(cfg.ServerAddress, r)
-		if err != nil {
-			slog.Info("Error starting server:", "error", err.Error())
-			// Ждем несколько секунд перед перезапуском
-			time.Sleep(5 * time.Second)
-			slog.Info("Error starting server:", "error", err.Error())
-		}
-
-		slog.Info("Error starting server:", "error", err.Error())
-	}()
-
-	slog.Info("Сервер http запущен")
+	err := http.ListenAndServe(cfg.ServerAddress, r)
+	if err != nil {
+		log.Error("Error starting server:", err)
+		// Ждем несколько секунд перед перезапуском
+		time.Sleep(5 * time.Second)
+	}
 
 }
 

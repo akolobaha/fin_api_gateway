@@ -2,9 +2,9 @@ package db
 
 import (
 	"fin_api_gateway/internal/config"
+	"fin_api_gateway/internal/log"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"log/slog"
 )
 
 type GormDB struct {
@@ -19,8 +19,7 @@ func (g *GormDB) Connect() error {
 	}), &gorm.Config{})
 
 	if err != nil {
-		slog.Error("Failed to connect to database: ", "error", err.Error())
-
+		log.Error("Failed to connect to database: ", err)
 		return err
 	}
 
@@ -34,13 +33,13 @@ func (g *GormDB) Close() error {
 
 	dbInstance, err := g.DB.DB()
 	if err != nil {
-		slog.Error("Failed to get DB instance: ", "error", err.Error())
+		log.Error("Failed to get DB instance: ", err)
 		return err
 	}
 
 	err = dbInstance.Close()
 	if err != nil {
-		slog.Error("Failed to close database connection: ", "error", err.Error())
+		log.Error("Failed to close database connection: ", err)
 		return err
 	}
 

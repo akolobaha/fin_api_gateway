@@ -22,6 +22,8 @@ type Config struct {
 	RabbitHost            string `env:"RABBIT_HOST"`
 	RabbitPort            int    `env:"RABBIT_PORT"`
 	RabbitQueue           string `env:"RABBIT_QUEUE"`
+	PrometheusPort        string `env:"PROMETHEUS_PORT"`
+	PrometheusHost        string `env:"PROMETHEUS_HOST"`
 }
 
 var DbDsn string
@@ -62,5 +64,11 @@ func InitDbDSN(c *Config) {
 func (c *Config) GetRabbitDSN() string {
 	return fmt.Sprintf(
 		"amqp://%s:%s@%s:%d/", c.RabbitUser, c.RabbitPassword, c.RabbitHost, c.RabbitPort,
+	)
+}
+
+func (c *Config) GetPrometheusURL() string {
+	return fmt.Sprintf(
+		"%s:%s", c.PrometheusHost, c.PrometheusPort,
 	)
 }

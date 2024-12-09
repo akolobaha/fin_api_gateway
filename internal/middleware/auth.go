@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fin_api_gateway/db"
 	"fin_api_gateway/internal/entities"
+	"fin_api_gateway/internal/log"
 	"fmt"
 	"gorm.io/gorm"
-	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -34,11 +34,11 @@ func Auth(next http.HandlerFunc) http.HandlerFunc {
 func getTokenEntityByToken(token string) (entities.UserToken, error) {
 	gDB := &db.GormDB{}
 	if err := gDB.Connect(); err != nil {
-		slog.Error("Could not connect to database: ", "error", err.Error())
+		log.Error("Could not connect to database: ", err)
 	}
 	defer func() {
 		if err := gDB.Close(); err != nil {
-			slog.Error("Error closing database connection: ", "error", err)
+			log.Error("Error closing database connection: ", err)
 		}
 	}()
 	currentTime := time.Now()
@@ -49,7 +49,7 @@ func getTokenEntityByToken(token string) (entities.UserToken, error) {
 		Joins("JOIN users u ON u.id = user_tokens.user_id").
 		Where("token = ? AND expiration_time > ? AND u.is_active = TRUE", token, formattedTime).First(&userToken).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			slog.Info("Токен не найден или истек")
+			log.Info("Токен не найден или истек")
 			return userToken, err
 		}
 	}
