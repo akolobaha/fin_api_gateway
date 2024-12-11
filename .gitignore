@@ -1,3 +1,4 @@
 .idea
 docker/mongo_data
 docker/pgdata
+.env

@@ -162,13 +162,15 @@ func RunGRPCServer(ctx context.Context, cfg *config.Config) {
 	pb.RegisterTargetsServiceServer(s, &targetServer{})
 
 	go func() {
-		log.Info(fmt.Sprintf("Server is running on port: %s", cfg.GrpcPort))
-
-		if err := s.Serve(lis); err != nil {
+		err := s.Serve(lis)
+		if err != nil {
 			log.Error("failed to serve: ", err)
+			return
 		}
 	}()
 
 	<-ctx.Done()
-	s.Stop()
+	s.GracefulStop()
+	log.Info("GRPC server stopped")
+
 }

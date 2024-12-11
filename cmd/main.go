@@ -35,9 +35,9 @@ func main() {
 	}()
 
 	go commands.RunHttp(ctx, cfg)
-	commands.RunGRPCServer(ctx, cfg)
+	go commands.TelegramBotRun(ctx, cfg)
+	go commands.RunGRPCServer(ctx, cfg)
 
 	<-ctx.Done()
-
 	log.Info("server is shutting down...")
 }

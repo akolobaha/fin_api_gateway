@@ -21,9 +21,8 @@ type UserResponse struct {
 }
 
 type UserBase struct {
-	Name     string `gorm:"not null" json:"name" validate:"required,min=3,max=100"`
-	Email    string `gorm:"not null" json:"email" validate:"required,email"`
-	Telegram string `gorm:"not null" json:"telegram"`
+	Name  string `gorm:"not null" json:"name" validate:"required,min=3,max=100"`
+	Email string `gorm:"not null" json:"email" validate:"required,email"`
 }
 
 type AuthResponse struct {

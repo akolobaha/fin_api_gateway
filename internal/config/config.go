@@ -24,6 +24,7 @@ type Config struct {
 	RabbitQueue           string `env:"RABBIT_QUEUE"`
 	PrometheusPort        int    `env:"PROMETHEUS_PORT"`
 	PrometheusHost        string `env:"PROMETHEUS_HOST"`
+	TelegramBotToken      string `env:"TELEGRAM_BOT_TOKEN"`
 }
 
 var DbDsn string
