@@ -69,12 +69,14 @@ func (s *targetServer) GetTargets(ctx context.Context, in *pb.TargetRequest) (*p
 	var userTargets []struct {
 		entities.UserTarget
 		entities.UserResponse
+		entities.TgUser
 	}
 
 	q := gDB.Table("user_targets").
 		Where("achieved = false").
-		Select("user_targets.*, users.*").
-		Joins("INNER JOIN users ON users.id = user_targets.user_id")
+		Select("user_targets.*, users.*, tg_users.*").
+		Joins("LEFT JOIN users ON users.id = user_targets.user_id " +
+			"LEFT JOIN tg_users ON tg_users.id = user_targets.tg_user_id")
 
 	if in.GetTicker() != "" {
 		q.Where("user_targets.ticker = ?", in.Ticker)
@@ -96,9 +98,10 @@ func (s *targetServer) GetTargets(ctx context.Context, in *pb.TargetRequest) (*p
 			FinancialReport:    target.UserTarget.FinancialReport,
 			NotificationMethod: target.UserTarget.NotificationMethod,
 			User: &pb.User{
-				Id:    target.UserResponse.ID,
-				Name:  target.UserResponse.Name,
-				Email: target.UserResponse.Email,
+				Id:       target.UserResponse.ID,
+				Name:     target.UserResponse.Name,
+				Email:    target.UserResponse.Email,
+				Telegram: fmt.Sprintf("%d", target.TgUser.TelegramUserID),
 			},
 		})
 	}

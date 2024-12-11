@@ -7,9 +7,13 @@ import (
 )
 
 type TgUser struct {
-	ID             int64 `gorm:"primaryKey"`
-	TelegramUserID int64
-	Username       string
+	ID             int64  `gorm:"primaryKey"`
+	TelegramUserID int64  `gorm:"column:telegram_user_id"`
+	Username       string `gorm:"column:username"`
+}
+
+func (tgg *TgUser) TableName() string {
+	return "tg_users"
 }
 
 func NewTgUser(tgUserId int64, username string) *TgUser {
