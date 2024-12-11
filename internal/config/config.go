@@ -22,7 +22,7 @@ type Config struct {
 	RabbitHost            string `env:"RABBIT_HOST"`
 	RabbitPort            int    `env:"RABBIT_PORT"`
 	RabbitQueue           string `env:"RABBIT_QUEUE"`
-	PrometheusPort        string `env:"PROMETHEUS_PORT"`
+	PrometheusPort        int    `env:"PROMETHEUS_PORT"`
 	PrometheusHost        string `env:"PROMETHEUS_HOST"`
 }
 
@@ -69,6 +69,6 @@ func (c *Config) GetRabbitDSN() string {
 
 func (c *Config) GetPrometheusURL() string {
 	return fmt.Sprintf(
-		"%s:%s", c.PrometheusHost, c.PrometheusPort,
+		"%s:%d", c.PrometheusHost, c.PrometheusPort,
 	)
 }

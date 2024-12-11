@@ -32,7 +32,7 @@ func Auth(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func getTokenEntityByToken(token string) (entities.UserToken, error) {
-	gDB := &db.GormDB{}
+	gDB := &db.Connection{}
 	if err := gDB.Connect(); err != nil {
 		log.Error("Could not connect to database: ", err)
 	}

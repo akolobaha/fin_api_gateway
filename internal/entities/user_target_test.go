@@ -1,7 +1,6 @@
 package entities
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -47,19 +46,18 @@ func TestUserTarget_Save(t *testing.T) {
 		t.Fatalf("failed to migrate: %v", err)
 	}
 
+	var userId int64 = 1
 	usf := &UserTarget{
 		Ticker:             "AAPL",
 		ValuationRatio:     "pe",
 		Value:              25.0,
 		FinancialReport:    "rsbu",
 		NotificationMethod: "sms",
+		UserId:             &userId,
 	}
 
-	// Create context with userId
-	ctx := context.WithValue(context.Background(), "userId", int64(1))
-
 	// Save the structure
-	err = usf.Save(ctx, db)
+	err = usf.Save(db)
 	assert.NoError(t, err, "Expected no error while saving")
 
 	// Check that the structure is saved in the database
@@ -67,7 +65,7 @@ func TestUserTarget_Save(t *testing.T) {
 	result := db.First(&savedUsf, usf.ID)
 	assert.NoError(t, result.Error, "Expected to find the saved UserTarget")
 	assert.Equal(t, usf.Ticker, savedUsf.Ticker)
-	assert.Equal(t, int64(1), savedUsf.UserId)
+	assert.Equal(t, int64(1), *savedUsf.UserId)
 	assert.Equal(t, usf.ValuationRatio, savedUsf.ValuationRatio)
 	assert.Equal(t, usf.Value, savedUsf.Value)
 	assert.Equal(t, usf.FinancialReport, savedUsf.FinancialReport)

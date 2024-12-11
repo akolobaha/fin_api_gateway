@@ -7,11 +7,19 @@ import (
 	"gorm.io/gorm"
 )
 
-type GormDB struct {
+type Connection struct {
 	*gorm.DB
 }
 
-func (g *GormDB) Connect() error {
+func ConnectToDB() (*Connection, error) {
+	gDB := &Connection{}
+	if err := gDB.Connect(); err != nil {
+		return nil, err
+	}
+	return gDB, nil
+}
+
+func (g *Connection) Connect() error {
 	var err error
 	g.DB, err = gorm.Open(postgres.New(postgres.Config{
 		DSN:                  config.DbDsn,
@@ -26,7 +34,7 @@ func (g *GormDB) Connect() error {
 	return nil
 }
 
-func (g *GormDB) Close() error {
+func (g *Connection) Close() error {
 	if g.DB == nil {
 		return nil // Если DB уже nil, ничего не делать
 	}

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fin_api_gateway/db"
 	"fin_api_gateway/internal/entities"
-	"fin_api_gateway/internal/log"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
 	"net/http"
@@ -24,133 +23,108 @@ func CreateTargetHandler(w http.ResponseWriter, r *http.Request) {
 		jsonErrorResponse(w, err, 400)
 		return
 	}
-	gDB := &db.GormDB{}
-	if err := gDB.Connect(); err != nil {
-		log.Error("Could not connect to database: ", err)
-	}
-	defer func() {
-		if err := gDB.Close(); err != nil {
-			log.Error("Error closing database connection: ", err)
+
+	handleDbRequest(w, r, func(gDB *db.Connection) error {
+		userId := r.Context().Value("userId").(int64)
+		newUserTarget.UserId = &userId
+		err = newUserTarget.Save(gDB.DB)
+		if err != nil {
+			jsonErrorResponse(w, err, 500)
+			return err
 		}
-	}()
 
-	err = newUserTarget.Save(r.Context(), gDB.DB)
-	if err != nil {
-		jsonErrorResponse(w, err, 500)
-		return
-	}
-
-	if err == nil {
 		renderJSON(w, newUserTarget)
-	}
-	return
+		return nil
+	})
 }
 
 func TargetsList(w http.ResponseWriter, r *http.Request) {
-	userId := r.Context().Value("userId").(int64)
+	handleDbRequest(w, r, func(gDB *db.Connection) error {
+		userId := r.Context().Value("userId").(int64)
+		var results []entities.UserTarget
 
-	gDB := &db.GormDB{}
-	if err := gDB.Connect(); err != nil {
-		log.Error("Could not connect to database: ", err)
-	}
-	defer func() {
-		if err := gDB.Close(); err != nil {
-			log.Error("Error closing database connection: ", err)
+		err := gDB.Table("user_targets").
+			Select("user_targets.*").
+			Where("user_id = ? AND achieved = false", userId).
+			Scan(&results).Error
+
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return err
 		}
-	}()
-	var results []entities.UserTarget
 
-	err := gDB.Table("user_targets").
-		Select("user_targets.*").
-		Where("user_id = ? AND achieved = false", userId).
-		Scan(&results).Error
-
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-	}
-
-	renderJSON(w, results)
+		renderJSON(w, results)
+		return nil
+	})
 }
 
 func TargetUpdate(w http.ResponseWriter, r *http.Request) {
-	gDB := &db.GormDB{}
-	if err := gDB.Connect(); err != nil {
-		log.Error("Could not connect to database: ", err)
-	}
-	defer func() {
-		if err := gDB.Close(); err != nil {
-			log.Error("Error closing database connection: ", err)
+	handleDbRequest(w, r, func(gDB *db.Connection) error {
+		var updUserTarget entities.UserTarget
+
+		decoder := json.NewDecoder(r.Body)
+		if err := decoder.Decode(&updUserTarget); err != nil {
+			jsonErrorResponse(w, err, 400)
+			return err
 		}
-	}()
-	var updUserTarget entities.UserTarget
 
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&updUserTarget); err != nil {
-		jsonErrorResponse(w, err, 400)
-		return
-	}
-
-	vars := mux.Vars(r)
-	id, err := strconv.ParseUint(vars["id"], 10, 0)
-	if err != nil {
-		jsonErrorResponse(w, err, 400)
-		return
-	}
-
-	userId := r.Context().Value("userId").(int64)
-	updUserTarget.UserId = userId
-
-	var existingRecord entities.UserTarget
-	if err := gDB.Where("user_id = ? AND id = ? AND achieved = false", userId, id).First(&existingRecord).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			jsonErrorResponse(w, errors.New("Target not found or it has been achieved"), 404)
-			return
-		} else {
-			jsonErrorResponse(w, err, 500)
-			return
+		vars := mux.Vars(r)
+		id, err := strconv.ParseUint(vars["id"], 10, 0)
+		if err != nil {
+			jsonErrorResponse(w, err, 400)
+			return err
 		}
-	}
 
-	result := gDB.Model(&existingRecord).Updates(
-		entities.UserTarget{
-			Ticker:             updUserTarget.Ticker,
-			ValuationRatio:     updUserTarget.ValuationRatio,
-			Value:              updUserTarget.Value,
-			FinancialReport:    updUserTarget.FinancialReport,
-			NotificationMethod: updUserTarget.NotificationMethod,
-		})
+		userId := r.Context().Value("userId").(int64)
+		updUserTarget.UserId = &userId
 
-	if err := result.Error; err != nil {
-		http.Error(w, err.Error(), 400)
-		return
-	}
+		var existingRecord entities.UserTarget
+		if err := gDB.Where("user_id = ? AND id = ? AND achieved = false", userId, id).First(&existingRecord).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				jsonErrorResponse(w, errors.New("Target not found or it has been achieved"), 404)
+				return err
+			} else {
+				jsonErrorResponse(w, err, 500)
+				return err
+			}
+		}
 
-	renderJSON(w, existingRecord)
+		result := gDB.Model(&existingRecord).Updates(
+			entities.UserTarget{
+				Ticker:             updUserTarget.Ticker,
+				ValuationRatio:     updUserTarget.ValuationRatio,
+				Value:              updUserTarget.Value,
+				FinancialReport:    updUserTarget.FinancialReport,
+				NotificationMethod: updUserTarget.NotificationMethod,
+			})
+
+		if err := result.Error; err != nil {
+			http.Error(w, err.Error(), 400)
+			return err
+		}
+
+		renderJSON(w, existingRecord)
+		return nil
+	})
 }
 
 func TargetDelete(w http.ResponseWriter, r *http.Request) {
-	gDB := &db.GormDB{}
-	if err := gDB.Connect(); err != nil {
-		log.Error("Could not connect to database: ", err)
-	}
-	defer func() {
-		if err := gDB.Close(); err != nil {
-			log.Error("Error closing database connection: ", err)
+	handleDbRequest(w, r, func(gDB *db.Connection) error {
+		vars := mux.Vars(r)
+		id, err := strconv.ParseUint(vars["id"], 10, 0)
+		if err != nil {
+			jsonErrorResponse(w, errors.New("invalid syntax"), 400)
+			return err
 		}
-	}()
-	vars := mux.Vars(r)
-	id, err := strconv.ParseUint(vars["id"], 10, 0)
-	if err != nil {
-		jsonErrorResponse(w, errors.New("invalid syntax"), 400)
-		return
-	}
 
-	userId := r.Context().Value("userId").(int64)
-	result := gDB.Where("id = ? AND user_id = ? AND achieved = false", id, userId).Delete(&entities.UserTarget{})
-	if err := result.Error; err != nil {
-		jsonErrorResponse(w, err, 500)
-		return
-	}
+		userId := r.Context().Value("userId").(int64)
+		result := gDB.Where("id = ? AND user_id = ? AND achieved = false", id, userId).Delete(&entities.UserTarget{})
+		if err := result.Error; err != nil {
+			jsonErrorResponse(w, err, 500)
+			return err
+		}
 
-	renderJSON(w, []string{"ok"})
+		renderJSON(w, []string{"ok"})
+		return nil
+	})
 }

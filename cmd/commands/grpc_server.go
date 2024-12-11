@@ -21,7 +21,7 @@ type targetServer struct {
 }
 
 func (s *tickerServer) GetMultipleTickers(ctx context.Context, in *pb.TickersRequest) (*pb.MultipleTickerResponse, error) {
-	gDB := &db.GormDB{}
+	gDB := &db.Connection{}
 	if err := gDB.Connect(); err != nil {
 		log.Error("Could not connect to database: ", err)
 	}
@@ -56,7 +56,7 @@ func (s *tickerServer) GetMultipleTickers(ctx context.Context, in *pb.TickersReq
 }
 
 func (s *targetServer) GetTargets(ctx context.Context, in *pb.TargetRequest) (*pb.TargetResponse, error) {
-	gDB := &db.GormDB{}
+	gDB := &db.Connection{}
 	if err := gDB.Connect(); err != nil {
 		log.Error("Could not connect to database: ", err)
 	}
@@ -96,10 +96,9 @@ func (s *targetServer) GetTargets(ctx context.Context, in *pb.TargetRequest) (*p
 			FinancialReport:    target.UserTarget.FinancialReport,
 			NotificationMethod: target.UserTarget.NotificationMethod,
 			User: &pb.User{
-				Id:       target.UserResponse.ID,
-				Name:     target.UserResponse.Name,
-				Email:    target.UserResponse.Email,
-				Telegram: target.UserResponse.Telegram,
+				Id:    target.UserResponse.ID,
+				Name:  target.UserResponse.Name,
+				Email: target.UserResponse.Email,
 			},
 		})
 	}
@@ -108,7 +107,7 @@ func (s *targetServer) GetTargets(ctx context.Context, in *pb.TargetRequest) (*p
 }
 
 func (s *targetServer) SetTargetAchieved(ctx context.Context, in *pb.TargetAchievedRequest) (*pb.TargetItem, error) {
-	gDB := &db.GormDB{}
+	gDB := &db.Connection{}
 	if err := gDB.Connect(); err != nil {
 		log.Error("Could not connect to database: ", err)
 	}
@@ -145,10 +144,9 @@ func (s *targetServer) SetTargetAchieved(ctx context.Context, in *pb.TargetAchie
 		NotificationMethod: target.UserTarget.NotificationMethod,
 		Achieved:           target.Achieved,
 		User: &pb.User{
-			Id:       target.UserResponse.ID,
-			Name:     target.UserResponse.Name,
-			Email:    target.UserResponse.Email,
-			Telegram: target.UserResponse.Telegram,
+			Id:    target.UserResponse.ID,
+			Name:  target.UserResponse.Name,
+			Email: target.UserResponse.Email,
 		},
 	}, nil
 }
