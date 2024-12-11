@@ -29,14 +29,11 @@ func TelegramBotRun(ctx context.Context, cfg *config.Config) error {
 	// Start
 	bh.HandleMessage(telegramhandler.StartButtonHandler, th.CommandEqual("start"))
 
-	// Ловим нажатия кнопок кнопок Добавление цели, мои цели
-	bh.HandleCallbackQuery(telegramhandler.TargetButtonsHandler, th.AnyCallbackQueryWithMessage())
+	// Ловим нажатия кнопок кнопок Добавление цели, мои цели, индикаторы, назад
+	bh.HandleCallbackQuery(telegramhandler.ButtonPressHandler, th.AnyCallbackQueryWithMessage())
 
-	// Обработка сообщений с клавиатуры: тикеры, коэффиценты, значения
+	// Обработка сообщений с клавиатуры: тикеры, значения индикаторов
 	bh.HandleMessage(telegramhandler.KeyboardInputHandler)
-
-	// Обработка выбора коэффициента через кнопки
-	bh.HandleCallbackQuery(telegramhandler.TargetCoefficentButtonHandler, th.AnyCallbackQueryWithMessage())
 
 	go func() {
 		bh.Start()

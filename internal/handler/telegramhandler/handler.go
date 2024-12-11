@@ -18,8 +18,6 @@ type InputItem struct {
 
 var userInputs = make(map[int64]*InputItem)
 
-var coefficients = []string{"price", "p / bv", "p / e", "p / s"}
-
 func handleDbMessageRequest(bot *telego.Bot, message telego.Message, handler func(conn *db.Connection)) {
 	gDB, err := db.ConnectToDB()
 	if err != nil {
@@ -51,7 +49,7 @@ func handleDbQueryRequest(bot *telego.Bot, query telego.CallbackQuery, handler f
 func StartButtonHandler(bot *telego.Bot, message telego.Message) {
 	if message.Text == "/start" {
 
-		tgUser := FirstOrCreateTgUser(message.From.ID, message.From.Username)
+		tgUser := entities.FirstOrCreateTgUser(message.From.ID, message.From.Username)
 
 		if userInputs[message.GetChat().ID] == nil {
 			userInputs[message.GetChat().ID] = &InputItem{
@@ -70,13 +68,4 @@ func StartButtonHandler(bot *telego.Bot, message telego.Message) {
 			),
 		)))
 	}
-}
-
-func IsValidCoefficient(coefficient string) bool {
-	for _, validCoefficient := range coefficients {
-		if coefficient == validCoefficient {
-			return true
-		}
-	}
-	return false
 }
